@@ -126,4 +126,10 @@ footer {
     .grid-container { grid-template-columns: 1fr; }
     #map-frame { width: 95%; }
     header h1 { font-size: 1.8rem; }
+
+}
+/* Убираем стандартную рамку контейнера иконки */
+.star-icon-container {
+    background: none !important;
+    border: none !important;
 }
