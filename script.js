@@ -19,11 +19,11 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
 var starIcon = L.divIcon({
     className: 'star-icon-container',
     html: `
-        <svg width="30" height="30" viewBox="0 0 24 24" style="display: block;">
+        <svg width="20" height="20" viewBox="0 0 24 24" style="display: block;">
             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" 
                   fill="#cc0000" stroke="#c5a059" stroke-width="1.5"/>
         </svg>`,
-    iconSize: [30, 30],
+    iconSize: [20, 20],
     iconAnchor: [15, 15],
     popupAnchor: [0, -15]
 });
@@ -54,3 +54,4 @@ monuments.forEach(function(item) {
     `;
     marker.bindPopup(popupContent);
 });
+
