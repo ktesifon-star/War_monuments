@@ -1,3 +1,4 @@
+// 1. Координаты и границы
 var southWest = L.latLng(40.0, 45.0);
 var northEast = L.latLng(56.0, 88.0);
 var bounds = L.latLngBounds(southWest, northEast);
@@ -14,7 +15,7 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 
-// Упрощенная иконка звезды
+// 2. ОПРЕДЕЛЯЕМ ЗВЕЗДУ (Важно: этот блок должен быть ВЫШЕ списка памятников)
 var starIcon = L.divIcon({
     className: 'star-icon-container',
     html: `
@@ -27,6 +28,7 @@ var starIcon = L.divIcon({
     popupAnchor: [0, -15]
 });
 
+// 3. Список памятников
 var monuments = [
     {
         name: "МЕМОРИАЛ СЛАВЫ",
@@ -37,7 +39,9 @@ var monuments = [
     }
 ];
 
+// 4. Отрисовка (Здесь мы явно указываем использовать starIcon)
 monuments.forEach(function(item) {
+    // ВНИМАНИЕ на { icon: starIcon } — это команда заменить каплю на звезду
     var marker = L.marker(item.coords, { icon: starIcon }).addTo(map);
     
     var popupContent = `
