@@ -50,6 +50,7 @@ function content(item) {
   return box;
 }
 function initialZoom() {
+  map.setMinZoom(2); // Recalculate freely when the viewport becomes narrower.
   return map.getBoundsZoom(kazakhstanBounds, false, [28, 28]);
 }
 function overview() {
