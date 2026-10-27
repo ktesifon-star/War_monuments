@@ -16,6 +16,9 @@ const region = document.querySelector('#region');
 const results = document.querySelector('#results');
 const status = document.querySelector('#map-status');
 const reset = document.querySelector('#reset-view');
+const kazakhstanBounds = [[40.56, 46.49], [55.45, 87.32]];
+reset.textContent = 'Начальный масштаб';
+reset.title = 'Вернуть карту к обзору Казахстана';
 let map;
 let markers;
 const markerById = new Map();
@@ -46,8 +49,14 @@ function content(item) {
   box.append(link);
   return box;
 }
+function initialZoom() {
+  return map.getBoundsZoom(kazakhstanBounds, false, [28, 28]);
+}
 function overview() {
-  if (map) map.fitBounds([[40,46],[56,88]], {padding:[14,14], animate:false});
+  if (!map) return;
+  map.closePopup();
+  map.setMinZoom(initialZoom());
+  map.fitBounds(kazakhstanBounds, {padding:[14,14], animate:false});
 }
 function showMonument(item, updateHash = true) {
   if (updateHash) history.replaceState(null, '', `#${item.id}`);
@@ -58,7 +67,7 @@ function showMonument(item, updateHash = true) {
 }
 
 if (typeof L !== 'undefined') {
-  map = L.map('map', {center:[48.0196,66.9237],zoom:4,minZoom:2,maxZoom:19,scrollWheelZoom:false});
+  map = L.map('map', {center:[48.0196,66.9237],zoom:4,minZoom:2,maxZoom:19,scrollWheelZoom:false,maxBounds:kazakhstanBounds,maxBoundsViscosity:1.0});
   const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom:19,
     attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -74,6 +83,10 @@ if (typeof L !== 'undefined') {
   tiles.addTo(map);
   markers = L.layerGroup().addTo(map);
   overview();
+  map.on('resize', () => {
+    map.setMinZoom(initialZoom());
+    map.panInsideBounds(kazakhstanBounds, {animate:false});
+  });
 } else {
   status.hidden = false;
   status.textContent = 'Не удалось загрузить интерактивную карту. Информация о памятниках доступна в каталоге ниже.';
@@ -112,7 +125,7 @@ function render() {
 }
 search.addEventListener('input',render);
 region.addEventListener('change',render);
-reset.addEventListener('click',() => { search.value='';region.value='';render();overview();history.replaceState(null,'','#atlas'); });
+reset.addEventListener('click',() => { overview();history.replaceState(null,'','#atlas'); });
 render();
 function openHash() {
   const selected = monuments.find(item => `#${item.id}` === location.hash);
