@@ -1,66 +1,59 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ПОКА СТОИТ ПАМЯТНИК — ЖИВЁТ ПАМЯТЬ</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Карта памятников Великой Отечественной войны. Сохраняем фотографии и истории мест памяти вместе.">
+  <title>Пока стоит памятник — живёт память</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css?v=20261027">
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script defer src="script.js?v=20261027"></script>
 </head>
 <body>
-
+<a class="skip-link" href="#main">Перейти к содержимому</a>
 <header>
-    <div class="header-container">
-        <h1>ПОКА СТОИТ ПАМЯТНИК — ЖИВЁТ ПАМЯТЬ</h1>
-        <div class="motto">ДАВАЙТЕ СОХРАНИМ ИСТОРИЮ ВМЕСТЕ!</div>
-        <div class="curator-badge">
-            КУРАТОР ПРОЕКТА: ЛЫСЕНКО ЛЮДМИЛА ВИТАЛЬЕВНА - учитель истории КГУ "Ставропольская СШ" района им. Г. Мусрепова Северо-Казахстанской области
-        </div>
-    </div>
+  <div class="container header-inner">
+    <a class="brand" href="./" aria-label="На главную"><span aria-hidden="true">★</span> Места памяти</a>
+    <nav aria-label="Основная навигация"><a href="#atlas">Карта</a><a href="#about">О проекте</a><a href="#participate">Участвовать</a></nav>
+  </div>
 </header>
-
-<main class="content-wrapper">
-    
-    <section class="info-block main-description">
-        <h2>МЕЖДУНАРОДНЫЙ ПРОЕКТ</h2>
-        <p>В рамках проекта мы собираем фотографии памятников, мемориалов, памятных досок и стендов с ветеранами Великой Отечественной войны для создания единого онлайн-сборника памяти</p>
-        <p><strong>КАЖДЫЙ ПАМЯТНИК — ЭТО ИСТОРИЯ ПОДВИГА, КАЖДАЯ ФОТОГРАФИЯ — ВКЛАД В СОХРАНЕНИЕ НАШЕЙ ОБЩЕЙ ПАМЯТИ</strong></p>
-        <div class="contact-area">
-            <p>ПРИСЫЛАЙТЕ ФОТО И ОПИСАНИЕ НА WHATSAPP:</p>
-            <div class="phone-display">+7 705 321 15 45</div>
-        </div>
-    </section>
-
-    <div id="map-frame">
-        <div id="map"></div>
+<main id="main" class="container">
+  <section class="hero" aria-labelledby="title">
+    <p class="eyebrow">Международный проект сохранения памяти</p>
+    <h1 id="title">Пока стоит памятник —<br>живёт память</h1>
+    <p class="intro">Собираем фотографии и истории памятников Великой Отечественной войны. Находим места памяти. Сохраняем имена для будущих поколений.</p>
+    <a class="button" href="#participate">Добавить историю памятника <span aria-hidden="true">↗</span></a>
+  </section>
+  <section id="atlas" class="atlas" aria-labelledby="map-title">
+    <div class="section-heading"><div><p class="eyebrow">Общий архив</p><h2 id="map-title">Карта памяти</h2></div><span class="collection-note">Коллекция пополняется</span></div>
+    <div class="atlas-layout">
+      <aside class="catalog" aria-label="Каталог памятников">
+        <label for="search">Найти памятник</label>
+        <input id="search" type="search" placeholder="Название или населённый пункт" autocomplete="off">
+        <label for="region">Регион</label>
+        <select id="region"><option value="">Все регионы</option></select>
+        <p id="result-count" class="muted" role="status"></p>
+        <div id="results"></div>
+        <noscript>Для поиска и карты включите JavaScript. В коллекции: Мемориал Славы, г. Алматы, парк им. 28 гвардейцев-панфиловцев.</noscript>
+      </aside>
+      <div class="map-column">
+        <div class="map-toolbar"><span><span class="legend-star" aria-hidden="true">★</span> Памятник / мемориал</span><button id="reset-view" type="button">Обзор Казахстана</button></div>
+        <div id="map" role="region" aria-label="Интерактивная карта памятников"></div>
+        <p id="map-status" class="map-status" role="status" hidden></p>
+        <p class="map-hint">Нажмите на звезду или выберите памятник в каталоге. Масштаб — кнопками + и −.</p>
+      </div>
     </div>
-
-    <div class="grid-container">
-        <section class="info-block card">
-            <h3>📸 ЧТО ПРИСЫЛАТЬ?</h3>
-            <p>Памятники и мемориалы участникам ВОВ</p>
-            <p>Памятные доски</p>
-            <p>Стенды с именами ветеранов</p>
-        </section>
-
-        <section class="info-block card">
-            <h3>🤝 СОТРУДНИЧЕСТВО</h3>
-            <p>Мы приглашаем к участию всех причастных к поиску и сохранению памяти о ВОВ</p>
-        </section>
-    </div>
-
-    <section class="info-block mission-footer">
-        <p>МЫ ХОТИМ, ЧТОБЫ ИМЕНА ГЕРОЕВ И МЕСТА ПАМЯТИ БЫЛИ СОХРАНЕНЫ ДЛЯ БУДУЩИХ ПОКОЛЕНИЙ</p>
-    </section>
-
+  </section>
+  <section id="about" class="about-section" aria-labelledby="about-title">
+    <div><p class="eyebrow">История рядом с нами</p><h2 id="about-title">Давайте сохраним<br>историю вместе</h2></div>
+    <div><p>В рамках проекта мы собираем фотографии памятников, мемориалов, памятных досок и стендов с ветеранами Великой Отечественной войны для создания единого онлайн-сборника памяти.</p><p>Приглашаем к участию всех, кто занимается поиском и сохранением памяти о ВОВ. Работа начинается с Казахстана, а участвовать могут жители разных стран.</p><p class="curator"><strong>Куратор проекта — Лысенко Людмила Витальевна</strong><br>Учитель истории КГУ «Ставропольская СШ», район им. Г. Мусрепова, Северо-Казахстанская область.</p></div>
+  </section>
+  <section id="participate" class="participate" aria-labelledby="participate-title">
+    <div><p class="eyebrow">Ваш вклад в общую память</p><h2 id="participate-title">Расскажите о памятнике</h2><p>Пришлите материалы куратору в WhatsApp:</p><ul><li>Название памятника и населённый пункт.</li><li>Местоположение: адрес, координаты или точку на карте.</li><li>Фотографии и имя автора снимков.</li><li>Краткую историю и источник сведений, если они известны.</li></ul><p class="muted">Отправляйте собственные фотографии или материалы с разрешением на публикацию.</p></div>
+    <div class="contact"><a class="button" href="https://wa.me/77053211545" target="_blank" rel="noopener">Написать в WhatsApp ↗</a><a class="phone" href="tel:+77053211545">+7 705 321 15 45</a><p>Каждая фотография — вклад<br>в сохранение общей памяти.</p></div>
+  </section>
 </main>
-
-<footer>
-    <p>&copy; 2026 ПРОЕКТ ПО СОХРАНЕНИЮ ПАМЯТНИКОВ ВОВ В РК</p>
-</footer>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="script.js"></script>
+<footer><div class="container footer-inner"><span>© 2026 · Пока стоит памятник — живёт память</span><a href="#atlas">К карте ↑</a></div></footer>
 </body>
-
 </html>

@@ -1,57 +1,122 @@
-// 1. Координаты и границы
-var southWest = L.latLng(40.0, 45.0);
-var northEast = L.latLng(56.0, 88.0);
-var bounds = L.latLngBounds(southWest, northEast);
+'use strict';
 
-var map = L.map('map', {
-    center: [48.0196, 66.9237],
-    zoom: 5,
-    minZoom: 4,
-    maxBounds: bounds,
-    maxBoundsViscosity: 1.0
-});
+// Add confirmed records here. Keep photo null until a permitted photo is available.
+const monuments = [{
+  id: 'almaty-memorial-slavy',
+  name: 'Мемориал Славы',
+  region: 'г. Алматы',
+  location: 'г. Алматы, парк им. 28 гвардейцев-панфиловцев',
+  coords: [43.259, 76.957],
+  photo: null,
+  description: 'Вечный огонь и мемориальный комплекс в честь героев-панфиловцев.'
+}];
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '© OpenStreetMap contributors'
-}).addTo(map);
+const search = document.querySelector('#search');
+const region = document.querySelector('#region');
+const results = document.querySelector('#results');
+const status = document.querySelector('#map-status');
+const reset = document.querySelector('#reset-view');
+let map;
+let markers;
+const markerById = new Map();
 
-// 2. ОПРЕДЕЛЯЕМ ЗВЕЗДУ (Важно: этот блок должен быть ВЫШЕ списка памятников)
-var starIcon = L.divIcon({
-    className: 'star-icon-container',
-    html: `
-        <svg width="20" height="20" viewBox="0 0 24 24" style="display: block;">
-            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" 
-                  fill="#cc0000" stroke="#c5a059" stroke-width="1.5"/>
-        </svg>`,
-    iconSize: [20, 20],
-    iconAnchor: [15, 15],
-    popupAnchor: [0, -15]
-});
+function node(tag, text, className) {
+  const el = document.createElement(tag);
+  if (text) el.textContent = text;
+  if (className) el.className = className;
+  return el;
+}
+function normalize(value) { return value.toLocaleLowerCase('ru').replace(/ё/g, 'е').trim(); }
+function photoPlaceholder() { return node('div', 'Фотография пока не добавлена', 'photo-placeholder'); }
+function content(item) {
+  const box = node('div', '', 'monument-popup');
+  box.append(node('h3', item.name), node('p', item.location));
+  if (item.photo) {
+    const img = node('img');
+    img.alt = item.name;
+    img.addEventListener('error', () => img.replaceWith(photoPlaceholder()), {once:true});
+    img.src = item.photo;
+    box.append(img);
+  } else box.append(photoPlaceholder());
+  box.append(node('p', item.description));
+  const link = node('a', 'Открыть точку в OpenStreetMap ↗');
+  link.href = `https://www.openstreetmap.org/?mlat=${item.coords[0]}&mlon=${item.coords[1]}#map=17/${item.coords[0]}/${item.coords[1]}`;
+  link.target = '_blank';
+  link.rel = 'noopener';
+  box.append(link);
+  return box;
+}
+function overview() {
+  if (map) map.fitBounds([[40,46],[56,88]], {padding:[14,14], animate:false});
+}
+function showMonument(item, updateHash = true) {
+  if (updateHash) history.replaceState(null, '', `#${item.id}`);
+  if (!map) return;
+  map.setView(item.coords, 14, {animate:false});
+  markerById.get(item.id)?.openPopup();
+  document.querySelector('#map').scrollIntoView({block:'center',behavior:'auto'});
+}
 
-// 3. Список памятников
-var monuments = [
-    {
-        name: "МЕМОРИАЛ СЛАВЫ",
-        location: "г. Алматы, Парк им. 28 гвардейцев-панфиловцев",
-        coords: [43.259, 76.957],
-        photo: "images/park_28.jpg",
-        description: "Вечный огонь и мемориальный комплекс в честь героев-панфиловцев."
-    }
-];
+if (typeof L !== 'undefined') {
+  map = L.map('map', {center:[48.0196,66.9237],zoom:4,minZoom:2,maxZoom:19,scrollWheelZoom:false});
+  const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom:19,
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  });
+  let tileErrors = 0;
+  tiles.on('loading', () => { tileErrors = 0; });
+  tiles.on('tileerror', () => {
+    tileErrors++;
+    status.hidden = false;
+    status.textContent = 'Часть карты не загрузилась. Проверьте соединение или откройте точку в OpenStreetMap из карточки. Каталог остаётся доступен.';
+  });
+  tiles.on('load', () => { if (!tileErrors) status.hidden = true; });
+  tiles.addTo(map);
+  markers = L.layerGroup().addTo(map);
+  overview();
+} else {
+  status.hidden = false;
+  status.textContent = 'Не удалось загрузить интерактивную карту. Информация о памятниках доступна в каталоге ниже.';
+  document.querySelector('#map').hidden = true;
+  reset.disabled = true;
+}
 
-// 4. Отрисовка (Здесь мы явно указываем использовать starIcon)
-monuments.forEach(function(item) {
-    // ВНИМАНИЕ на { icon: starIcon } — это команда заменить каплю на звезду
-    var marker = L.marker(item.coords, { icon: starIcon }).addTo(map);
-    
-    var popupContent = `
-        <div style="font-family: 'Times New Roman', serif; text-align: center; width: 220px;">
-            <h3 style="color: #002366; margin: 0; text-transform: uppercase; font-size: 1rem; border-bottom: 1px solid #c5a059;">${item.name}</h3>
-            <p style="margin: 8px 0; font-size: 0.9rem;"><b>${item.location}</b></p>
-            <img src="${item.photo}" alt="${item.name}" style="width: 100%; border-radius: 8px; margin-bottom: 8px; border: 1px solid #c5a059;">
-            <p style="font-size: 0.85rem; color: #333; line-height: 1.3;">${item.description}</p>
-        </div>
-    `;
-    marker.bindPopup(popupContent);
-});
-
+for (const value of [...new Set(monuments.map(item => item.region))].sort()) {
+  const option = node('option', value);
+  option.value = value;
+  region.append(option);
+}
+function render() {
+  const query = normalize(search.value);
+  const filtered = monuments.filter(item => (!region.value || item.region === region.value) && normalize(`${item.name} ${item.location}`).includes(query));
+  results.replaceChildren();
+  if (markers) markers.clearLayers();
+  markerById.clear();
+  document.querySelector('#result-count').textContent = `Найдено: ${filtered.length} · Всего в коллекции: ${monuments.length}`;
+  if (!filtered.length) results.append(node('p','Ничего не найдено. Измените запрос или выберите другой регион.','muted'));
+  filtered.forEach(item => {
+    const article = node('article', '', 'result-card');
+    article.append(node('h3',item.name),node('p',item.location));
+    if (map) {
+      const icon = L.divIcon({className:'star-icon-container',iconSize:[44,44],iconAnchor:[22,22],popupAnchor:[0,-14],html:'<svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#b32d35" stroke="#fff" stroke-width="1.5"/></svg>'});
+      const marker = L.marker(item.coords,{icon,title:item.name,alt:item.name}).bindPopup(content(item),{maxWidth:260}).addTo(markers);
+      marker.on('click', () => history.replaceState(null,'',`#${item.id}`));
+      markerById.set(item.id,marker);
+      const button = node('button','Показать на карте →');
+      button.type = 'button';
+      button.addEventListener('click', () => showMonument(item));
+      article.append(button);
+    } else article.append(content(item));
+    results.append(article);
+  });
+}
+search.addEventListener('input',render);
+region.addEventListener('change',render);
+reset.addEventListener('click',() => { search.value='';region.value='';render();overview();history.replaceState(null,'','#atlas'); });
+render();
+function openHash() {
+  const selected = monuments.find(item => `#${item.id}` === location.hash);
+  if (selected) { search.value='';region.value='';render();showMonument(selected,false); }
+}
+window.addEventListener('hashchange',openHash);
+openHash();
