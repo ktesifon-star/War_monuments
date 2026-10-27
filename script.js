@@ -68,7 +68,7 @@ function showMonument(item, updateHash = true) {
 }
 
 if (typeof L !== 'undefined') {
-  map = L.map('map', {center:[48.0196,66.9237],zoom:4,minZoom:2,maxZoom:19,scrollWheelZoom:false,maxBounds:kazakhstanBounds,maxBoundsViscosity:1.0});
+  map = L.map('map', {center:[48.0196,66.9237],zoom:4,minZoom:2,maxZoom:19,scrollWheelZoom:true,maxBounds:kazakhstanBounds,maxBoundsViscosity:1.0});
   const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom:19,
     attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -112,7 +112,7 @@ function render() {
     const article = node('article', '', 'result-card');
     article.append(node('h3',item.name),node('p',item.location));
     if (map) {
-      const icon = L.divIcon({className:'star-icon-container',iconSize:[44,44],iconAnchor:[22,22],popupAnchor:[0,-14],html:'<svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#b32d35" stroke="#fff" stroke-width="1.5"/></svg>'});
+      const icon = L.divIcon({className:'star-icon-container',iconSize:[24,24],iconAnchor:[12,12],popupAnchor:[0,-9],html:'<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#b32d35" stroke="#fff" stroke-width="1.5"/></svg>'});
       const marker = L.marker(item.coords,{icon,title:item.name,alt:item.name}).bindPopup(content(item),{maxWidth:260}).addTo(markers);
       marker.on('click', () => history.replaceState(null,'',`#${item.id}`));
       markerById.set(item.id,marker);
