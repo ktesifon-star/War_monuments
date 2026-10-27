@@ -1,0 +1,63 @@
+# Settings > Pages > Source: GitHub Actions activates gated deployment.
+name: Validate and publish site
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+    outputs:
+      enabled: ${{ steps.source.outputs.enabled }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm run check
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-site
+          path: dist/
+          include-hidden-files: true
+      - id: source
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              const {data} = await github.rest.repos.getPages(context.repo);
+              core.setOutput('enabled', data.build_type === 'workflow' ? 'true' : 'false');
+              if (data.build_type !== 'workflow') core.notice('Select GitHub Actions in Settings > Pages to activate gated publishing.');
+            } catch (error) {
+              core.warning('Could not read Pages source: ' + error.message);
+              core.setOutput('enabled', 'false');
+            }
+      - if: steps.source.outputs.enabled == 'true'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist/
+  deploy:
+    needs: check
+    if: needs.check.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy checked artifact
+        id: deployment
+        uses: actions/deploy-pages@v4

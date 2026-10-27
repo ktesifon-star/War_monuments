@@ -6,9 +6,9 @@
   <meta name="description" content="Карта памятников Великой Отечественной войны. Сохраняем фотографии и истории мест памяти вместе.">
   <title>Пока стоит памятник — живёт память</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="style.css?v=20261027">
+  <link rel="stylesheet" href="style.css?v=20261027-4">
   <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script defer src="script.js?v=20261027-3"></script>
+  <script type="module" src="script.js?v=20261027-4"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Перейти к содержимому</a>
@@ -34,8 +34,11 @@
         <label for="region">Регион</label>
         <select id="region"><option value="">Все регионы</option></select>
         <p id="result-count" class="muted" role="status"></p>
+        <p id="data-status" class="data-status" role="status" hidden></p>
+        <button id="retry-data" type="button" hidden>Повторить загрузку</button>
         <div id="results"></div>
-        <noscript>Для поиска и карты включите JavaScript. В коллекции: Мемориал Славы, г. Алматы, парк им. 28 гвардейцев-панфиловцев.</noscript>
+        <button id="show-more" type="button" hidden>Показать ещё</button>
+        <noscript>Для карты и поиска включите JavaScript. <a href="data/monuments.json">Открыть данные каталога</a>.</noscript>
       </aside>
       <div class="map-column">
         <div class="map-toolbar"><span><span class="legend-star" aria-hidden="true">★</span> Памятник / мемориал</span><button id="reset-view" type="button">Начальный масштаб</button></div>

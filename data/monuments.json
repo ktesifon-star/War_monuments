@@ -1,0 +1,15 @@
+[
+  {
+    "id": "almaty-memorial-slavy",
+    "name": "Мемориал Славы",
+    "region": "г. Алматы",
+    "location": "г. Алматы, парк им. 28 гвардейцев-панфиловцев",
+    "coords": [43.259, 76.957],
+    "photo": null,
+    "photoAuthor": null,
+    "photoSource": null,
+    "photoPermission": null,
+    "sources": [],
+    "description": "Вечный огонь и мемориальный комплекс в честь героев-панфиловцев."
+  }
+]

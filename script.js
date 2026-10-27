@@ -1,136 +1,218 @@
-'use strict';
-
-// Add confirmed records here. Keep photo null until a permitted photo is available.
-const monuments = [{
-  id: 'almaty-memorial-slavy',
-  name: 'Мемориал Славы',
-  region: 'г. Алматы',
-  location: 'г. Алматы, парк им. 28 гвардейцев-панфиловцев',
-  coords: [43.259, 76.957],
-  photo: null,
-  description: 'Вечный огонь и мемориальный комплекс в честь героев-панфиловцев.'
-}];
+import {config} from './config.js';
+import {validateMonuments, filterMonuments, debounce, createMarkerIndex} from './core.js';
 
 const search = document.querySelector('#search');
 const region = document.querySelector('#region');
 const results = document.querySelector('#results');
-const status = document.querySelector('#map-status');
+const mapStatus = document.querySelector('#map-status');
+const dataStatus = document.querySelector('#data-status');
+const count = document.querySelector('#result-count');
 const reset = document.querySelector('#reset-view');
-const kazakhstanBounds = [[40.56, 46.49], [55.45, 87.32]];
-reset.textContent = 'Начальный масштаб';
-reset.title = 'Вернуть карту к обзору Казахстана';
+const more = document.querySelector('#show-more');
+const retry = document.querySelector('#retry-data');
 let map;
-let markers;
-const markerById = new Map();
+let markerIndex;
+let monuments = [];
+let filtered = [];
+let displayed = 0;
+const L = window.L;
 
-function node(tag, text, className) {
+function node(tag, text = '', className = '') {
   const el = document.createElement(tag);
-  if (text) el.textContent = text;
+  el.textContent = text;
   if (className) el.className = className;
   return el;
 }
-function normalize(value) { return value.toLocaleLowerCase('ru').replace(/ё/g, 'е').trim(); }
-function photoPlaceholder() { return node('div', 'Фотография пока не добавлена', 'photo-placeholder'); }
+
+function message(el, text) {
+  el.textContent = text;
+  el.hidden = !text;
+}
+
+function externalLink(label, href) {
+  const a = node('a', label);
+  a.href = href;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  return a;
+}
+
+function photoPlaceholder() {
+  return node('div', 'Фотография пока не добавлена', 'photo-placeholder');
+}
+
+// Called only on popup open (or explicit catalog expansion if Leaflet failed).
 function content(item) {
   const box = node('div', '', 'monument-popup');
   box.append(node('h3', item.name), node('p', item.location));
   if (item.photo) {
     const img = node('img');
     img.alt = item.name;
-    img.addEventListener('error', () => img.replaceWith(photoPlaceholder()), {once:true});
+    img.decoding = 'async';
+    const updatePopup = () => markerIndex?.get(item.id)?.getPopup()?.update();
+    img.addEventListener('load', updatePopup, {once: true});
+    img.addEventListener('error', () => {
+      img.replaceWith(node('div', 'Не удалось загрузить фотографию', 'photo-placeholder'));
+      updatePopup();
+    }, {once: true});
     img.src = item.photo;
     box.append(img);
+    box.append(node('p', `Фото: ${item.photoAuthor}. Источник: ${item.photoSource}. ${item.photoPermission}`, 'muted'));
   } else box.append(photoPlaceholder());
   box.append(node('p', item.description));
-  const link = node('a', 'Открыть точку в OpenStreetMap ↗');
-  link.href = `https://www.openstreetmap.org/?mlat=${item.coords[0]}&mlon=${item.coords[1]}#map=17/${item.coords[0]}/${item.coords[1]}`;
-  link.target = '_blank';
-  link.rel = 'noopener';
-  box.append(link);
+  (item.sources ?? []).forEach((url, index) => box.append(externalLink(`Источник ${index + 1} ↗`, url)));
+  const [lat, lon] = item.coords;
+  box.append(externalLink('Открыть точку в OpenStreetMap ↗', `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=17/${lat}/${lon}`));
   return box;
 }
+
 function initialZoom() {
-  map.setMinZoom(2); // Recalculate freely when the viewport becomes narrower.
-  return map.getBoundsZoom(kazakhstanBounds, false, [28, 28]);
+  map.setMinZoom(2);
+  return map.getBoundsZoom(config.bounds, false, [28, 28]);
 }
+
 function overview() {
   if (!map) return;
   map.closePopup();
   map.setMinZoom(initialZoom());
-  map.fitBounds(kazakhstanBounds, {padding:[14,14], animate:false});
+  map.fitBounds(config.bounds, {padding: [14, 14], animate: false});
 }
+
 function showMonument(item, updateHash = true) {
   if (updateHash) history.replaceState(null, '', `#${item.id}`);
   if (!map) return;
-  map.setView(item.coords, 14, {animate:false});
-  markerById.get(item.id)?.openPopup();
-  document.querySelector('#map').scrollIntoView({block:'center',behavior:'auto'});
+  map.setView(item.coords, config.detailZoom, {animate: false});
+  markerIndex.get(item.id)?.openPopup();
+  document.querySelector('#map').scrollIntoView({block: 'center', behavior: 'instant'});
 }
 
-if (typeof L !== 'undefined') {
-  map = L.map('map', {center:[48.0196,66.9237],zoom:4,minZoom:2,maxZoom:19,scrollWheelZoom:true,maxBounds:kazakhstanBounds,maxBoundsViscosity:1.0});
-  const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom:19,
-    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+function setupMap() {
+  if (!L) {
+    message(mapStatus, 'Не удалось загрузить карту. Откройте описание памятника в каталоге.');
+    document.querySelector('#map').hidden = true;
+    reset.disabled = true;
+    return;
+  }
+  map = L.map('map', {
+    center: [48.0196, 66.9237], zoom: 4, minZoom: 2, maxZoom: config.maxZoom,
+    scrollWheelZoom: true, maxBounds: config.bounds, maxBoundsViscosity: 1,
   });
+  const tiles = L.tileLayer(config.tileUrl, {maxZoom: config.maxZoom, attribution: config.attribution});
   let tileErrors = 0;
   tiles.on('loading', () => { tileErrors = 0; });
   tiles.on('tileerror', () => {
     tileErrors++;
-    status.hidden = false;
-    status.textContent = 'Часть карты не загрузилась. Проверьте соединение или откройте точку в OpenStreetMap из карточки. Каталог остаётся доступен.';
+    message(mapStatus, 'Часть карты не загрузилась. Каталог доступен; точку можно открыть в OpenStreetMap из карточки.');
   });
-  tiles.on('load', () => { if (!tileErrors) status.hidden = true; });
+  tiles.on('load', () => { if (!tileErrors) message(mapStatus, ''); });
   tiles.addTo(map);
-  markers = L.layerGroup().addTo(map);
+  const layer = L.layerGroup().addTo(map);
+  const icon = L.divIcon({
+    className: 'star-icon-container', iconSize: [24, 24], iconAnchor: [12, 12], popupAnchor: [0, -9],
+    html: '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#b32d35" stroke="#fff" stroke-width="1.5"/></svg>',
+  });
+  markerIndex = createMarkerIndex(layer, item => {
+    const marker = L.marker(item.coords, {icon, title: item.name, alt: item.name});
+    marker.bindPopup(() => content(item), {maxWidth: 260});
+    marker.on('click', () => history.replaceState(null, '', `#${item.id}`));
+    return marker;
+  });
   overview();
   map.on('resize', () => {
     map.setMinZoom(initialZoom());
-    map.panInsideBounds(kazakhstanBounds, {animate:false});
+    map.panInsideBounds(config.bounds, {animate: false});
   });
-} else {
-  status.hidden = false;
-  status.textContent = 'Не удалось загрузить интерактивную карту. Информация о памятниках доступна в каталоге ниже.';
-  document.querySelector('#map').hidden = true;
-  reset.disabled = true;
 }
 
-for (const value of [...new Set(monuments.map(item => item.region))].sort()) {
-  const option = node('option', value);
-  option.value = value;
-  region.append(option);
-}
-function render() {
-  const query = normalize(search.value);
-  const filtered = monuments.filter(item => (!region.value || item.region === region.value) && normalize(`${item.name} ${item.location}`).includes(query));
-  results.replaceChildren();
-  if (markers) markers.clearLayers();
-  markerById.clear();
-  document.querySelector('#result-count').textContent = `Найдено: ${filtered.length} · Всего в коллекции: ${monuments.length}`;
-  if (!filtered.length) results.append(node('p','Ничего не найдено. Измените запрос или выберите другой регион.','muted'));
-  filtered.forEach(item => {
+function appendPage() {
+  const next = filtered.slice(displayed, displayed + config.pageSize);
+  next.forEach(item => {
     const article = node('article', '', 'result-card');
-    article.append(node('h3',item.name),node('p',item.location));
+    article.append(node('h3', item.name), node('p', item.location));
     if (map) {
-      const icon = L.divIcon({className:'star-icon-container',iconSize:[24,24],iconAnchor:[12,12],popupAnchor:[0,-9],html:'<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#b32d35" stroke="#fff" stroke-width="1.5"/></svg>'});
-      const marker = L.marker(item.coords,{icon,title:item.name,alt:item.name}).bindPopup(content(item),{maxWidth:260}).addTo(markers);
-      marker.on('click', () => history.replaceState(null,'',`#${item.id}`));
-      markerById.set(item.id,marker);
-      const button = node('button','Показать на карте →');
+      const button = node('button', 'Показать на карте →');
       button.type = 'button';
       button.addEventListener('click', () => showMonument(item));
       article.append(button);
-    } else article.append(content(item));
+    } else {
+      const details = node('details');
+      details.append(node('summary', 'Открыть описание'));
+      details.addEventListener('toggle', () => {
+        if (details.open && !details.dataset.loaded) {
+          details.append(content(item));
+          details.dataset.loaded = 'true';
+        }
+      });
+      article.append(details);
+    }
     results.append(article);
   });
+  displayed += next.length;
+  more.hidden = displayed >= filtered.length;
+  more.textContent = `Показать ещё (${Math.min(config.pageSize, filtered.length - displayed)})`;
 }
-search.addEventListener('input',render);
-region.addEventListener('change',render);
-reset.addEventListener('click',() => { overview();history.replaceState(null,'','#atlas'); });
-render();
+
+function render() {
+  filtered = filterMonuments(monuments, search.value, region.value);
+  if (map) {
+    map.closePopup();
+    markerIndex.sync(filtered);
+  }
+  const selectedId = location.hash.slice(1);
+  if (monuments.some(item => item.id === selectedId) && !filtered.some(item => item.id === selectedId)) {
+    history.replaceState(null, '', '#atlas');
+  }
+  results.replaceChildren();
+  results.scrollTop = 0;
+  displayed = 0;
+  count.textContent = `Найдено: ${filtered.length} · Всего в коллекции: ${monuments.length}`;
+  if (!filtered.length) results.append(node('p', monuments.length ? 'Ничего не найдено. Измените запрос или выберите другой регион.' : 'В каталоге пока нет доступных записей.', 'muted'));
+  appendPage();
+}
+
 function openHash() {
-  const selected = monuments.find(item => `#${item.id}` === location.hash);
-  if (selected) { search.value='';region.value='';render();showMonument(selected,false); }
+  const item = monuments.find(record => `#${record.id}` === location.hash);
+  if (!item) return;
+  delayedRender.cancel();
+  search.value = '';
+  region.value = '';
+  render();
+  showMonument(item, false);
 }
-window.addEventListener('hashchange',openHash);
-openHash();
+
+async function loadCatalog() {
+  retry.hidden = true;
+  search.disabled = region.disabled = true;
+  count.textContent = 'Загрузка каталога…';
+  try {
+    const response = await fetch(config.dataUrl, {signal: AbortSignal.timeout(15000)});
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const {valid, errors} = validateMonuments(await response.json());
+    monuments = valid;
+    message(dataStatus, errors.length ? `Не удалось показать некоторые записи (${errors.length}). Остальной каталог доступен.` : '');
+    if (errors.length) console.warn('Ошибки каталога:', errors);
+    if (errors.length && !valid.length) retry.hidden = false;
+    region.replaceChildren(new Option('Все регионы', ''));
+    [...new Set(valid.map(item => item.region))].sort((a, b) => a.localeCompare(b, 'ru'))
+      .forEach(value => region.append(new Option(value, value)));
+    render();
+    openHash();
+  } catch (error) {
+    console.error('Не удалось загрузить каталог:', error);
+    count.textContent = 'Каталог недоступен';
+    message(dataStatus, 'Не удалось загрузить список памятников. Проверьте соединение и повторите попытку.');
+    retry.hidden = false;
+  } finally {
+    search.disabled = region.disabled = false;
+  }
+}
+
+const delayedRender = debounce(render, config.searchDelay);
+search.addEventListener('input', delayedRender);
+region.addEventListener('change', () => { delayedRender.cancel(); render(); });
+more.addEventListener('click', appendPage);
+retry.addEventListener('click', loadCatalog);
+reset.addEventListener('click', () => { overview(); history.replaceState(null, '', '#atlas'); });
+window.addEventListener('hashchange', openHash);
+setupMap();
+loadCatalog();
