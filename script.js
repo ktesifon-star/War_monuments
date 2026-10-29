@@ -10,6 +10,10 @@ const count = document.querySelector('#result-count');
 const reset = document.querySelector('#reset-view');
 const more = document.querySelector('#show-more');
 const retry = document.querySelector('#retry-data');
+const detailPanel = document.querySelector('#monument-panel');
+const detailBody = document.querySelector('#monument-detail');
+const closeDetail = document.querySelector('#close-monument');
+let detailTrigger;
 let map;
 let markerIndex;
 let monuments = [];
@@ -49,21 +53,30 @@ function content(item) {
     const img = node('img');
     img.alt = item.name;
     img.decoding = 'async';
-    const updatePopup = () => markerIndex?.get(item.id)?.getPopup()?.update();
-    img.addEventListener('load', updatePopup, {once: true});
     img.addEventListener('error', () => {
       img.replaceWith(node('div', 'Не удалось загрузить фотографию', 'photo-placeholder'));
-      updatePopup();
     }, {once: true});
     img.src = item.photo;
     box.append(img);
-    box.append(node('p', `Фото: ${item.photoAuthor}. Источник: ${item.photoSource}. ${item.photoPermission}`, 'muted'));
+    box.append(node('p', `Фото: ${item.photoAuthor}. Источник: ${item.photoSource}. ${item.photoPermission}`, 'muted photo-credit'));
   } else box.append(photoPlaceholder());
-  box.append(node('p', item.description));
+  box.append(node('p', item.description, 'monument-description'));
   (item.sources ?? []).forEach((url, index) => box.append(externalLink(`Источник ${index + 1} ↗`, url)));
   const [lat, lon] = item.coords;
   box.append(externalLink('Открыть точку в OpenStreetMap ↗', `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=17/${lat}/${lon}`));
   return box;
+}
+
+function hideDetails(restoreFocus = false) {
+  detailPanel.hidden = true;
+  if (restoreFocus) detailTrigger?.focus?.({preventScroll: true});
+}
+
+function showDetails(item) {
+  detailTrigger = document.activeElement;
+  detailBody.replaceChildren(content(item));
+  detailPanel.hidden = false;
+  closeDetail.focus?.({preventScroll: true});
 }
 
 function initialZoom() {
@@ -73,7 +86,7 @@ function initialZoom() {
 
 function overview() {
   if (!map) return;
-  map.closePopup();
+  hideDetails();
   map.setMinZoom(initialZoom());
   map.fitBounds(config.bounds, {padding: [14, 14], animate: false});
 }
@@ -82,7 +95,7 @@ function showMonument(item, updateHash = true) {
   if (updateHash) history.replaceState(null, '', `#${item.id}`);
   if (!map) return;
   map.setView(item.coords, config.detailZoom, {animate: false});
-  markerIndex.get(item.id)?.openPopup();
+  showDetails(item);
   document.querySelector('#map').scrollIntoView({block: 'center', behavior: 'instant'});
 }
 
@@ -113,11 +126,17 @@ function setupMap() {
   });
   markerIndex = createMarkerIndex(layer, item => {
     const marker = L.marker(item.coords, {icon, title: item.name, alt: item.name});
-    marker.bindPopup(() => content(item), {maxWidth: 260});
-    marker.on('click', () => history.replaceState(null, '', `#${item.id}`));
+    marker.on('click', () => {
+      history.replaceState(null, '', `#${item.id}`);
+      showDetails(item);
+    });
     return marker;
   });
   overview();
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(() => map.invalidateSize({pan: false, debounceMoveend: true}))
+      .observe(document.querySelector('#map-stage'));
+  }
   map.on('resize', () => {
     map.setMinZoom(initialZoom());
     map.panInsideBounds(config.bounds, {animate: false});
@@ -155,7 +174,7 @@ function appendPage() {
 function render() {
   filtered = filterMonuments(monuments, search.value, region.value);
   if (map) {
-    map.closePopup();
+    hideDetails();
     markerIndex.sync(filtered);
   }
   const selectedId = location.hash.slice(1);
@@ -207,6 +226,10 @@ async function loadCatalog() {
   }
 }
 
+closeDetail.addEventListener('click', () => hideDetails(true));
+detailPanel.addEventListener('keydown', event => {
+  if (event.key === 'Escape') { event.preventDefault(); hideDetails(true); }
+});
 const delayedRender = debounce(render, config.searchDelay);
 search.addEventListener('input', delayedRender);
 region.addEventListener('change', () => { delayedRender.cancel(); render(); });

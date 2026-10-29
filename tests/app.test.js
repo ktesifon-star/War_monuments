@@ -27,7 +27,7 @@ function fixture({records, leaflet = true, fail = false}) {
     divIcon(options){stats.icon=options;return options;},
     marker(){
       stats.markers++;
-      const marker={bindPopup(fn){this.popupFactory=fn;return this;},on(){},openPopup(){this.popupFactory();},getPopup(){return {update(){}};}};
+      const marker={events:{},on(name,fn){this.events[name]=fn;},openPopup(){throw Error('Leaflet popup must not be used');}};
       markerObjects.push(marker);
       return marker;
     },
@@ -55,7 +55,11 @@ test('app loads 65 markers once, pages cards, lazily opens photo and preserves r
   assert.equal(elements.get('#results').children.length,30);
   elements.get('#show-more').events.click();
   assert.equal(elements.get('#results').children.length,60);
-  markerObjects[0].openPopup();
+  markerObjects[0].events.click();
+  assert.equal(elements.get('#monument-panel').hidden,false);
+  assert.equal(elements.get('#monument-detail').children.length,1);
+  elements.get('#close-monument').events.click();
+  assert.equal(elements.get('#monument-panel').hidden,true);
   assert.equal(stats.images,1);
   elements.get('#search').value='Мемориал 64';
   elements.get('#search').events.input();

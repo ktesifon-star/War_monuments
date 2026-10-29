@@ -610,3 +610,57 @@ header::before, footer::before {
   pointer-events: none;
   z-index: -1;
 }
+
+/* A stable card shares the map's grid cell; its full content determines
+   the minimum map height. No popup auto-pan or nested scroll container. */
+.map-stage { display: grid; min-width: 0; }
+.map-stage > #map { grid-area: 1 / 1; height: 100%; min-height: 490px; }
+.monument-panel {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  width: calc(100% - 48px);
+  max-width: 760px;
+  margin: 24px auto;
+  padding: 22px;
+  background: #fff;
+  border: 1px solid #ccd3db;
+  border-radius: 8px;
+  box-shadow: 0 8px 28px #102c5033;
+}
+#close-monument {
+  position: absolute; top: 4px; right: 4px;
+  width: 44px; height: 44px; border: 0;
+  background: transparent; color: var(--blue);
+  font-size: 28px; line-height: 1;
+}
+.monument-panel .monument-popup {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.2fr);
+  gap: 10px 20px;
+  width: 100%; max-width: none;
+  font-size: 14px; line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.monument-panel h3 { grid-column: 1 / -1; margin: 0; padding-right: 32px; font-size: 23px; }
+.monument-panel .monument-popup > p:first-of-type { grid-column: 1 / -1; }
+.monument-panel .monument-popup p { margin: 0; }
+.monument-panel .monument-popup img {
+  grid-column: 1; grid-row: 3;
+  width: 100%; height: 190px; object-fit: contain;
+  background: var(--paper); border-radius: 4px;
+}
+.monument-panel .photo-placeholder { grid-column: 1; grid-row: 3; }
+.monument-panel .photo-credit { grid-column: 1; font-size: 11px; line-height: 1.4; }
+.monument-panel .monument-description { grid-column: 2; grid-row: 3 / 5; }
+.monument-panel .monument-popup a { grid-column: 1 / -1; min-height: 44px; padding: 10px 0; }
+@media (max-width: 800px) {
+  .monument-panel { width: calc(100% - 24px); margin: 12px auto; padding: 16px; }
+  .monument-panel .monument-popup { display: flex; flex-direction: column; gap: 8px; }
+  .monument-panel h3 { font-size: 21px; }
+  .monument-panel .monument-popup img { height: 140px; }
+}
+@media (max-width: 600px) {
+  .map-stage > #map { min-height: 370px; }
+}
