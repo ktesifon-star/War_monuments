@@ -502,51 +502,32 @@ footer {
   #results { max-height: 220px; }
 }
 
-/* Project poster, cleaned of contact details; foreground copy stays readable. */
+/* Compact memorial banner; keep its title clear of the foreground copy. */
 .hero {
   max-width: none;
-  min-height: 640px;
-  aspect-ratio: 3 / 2;
-  margin: 24px 0 32px;
-  padding: clamp(24px, 4vw, 48px);
+  min-height: 420px;
+  margin: 20px 0 28px;
+  padding: 110px 28px 24px;
   display: flex;
   align-items: flex-end;
-  position: relative;
-  isolation: isolate;
   overflow: hidden;
   border-radius: 10px;
   background-color: #0d2035;
   background-image:
-    linear-gradient(to top, #0d2035 0%, rgba(13, 32, 53, .98) 46%, rgba(13, 32, 53, .30) 60%, transparent 70%),
-    url('images/project-banner-no-contacts.webp');
-  background-size: cover;
-  background-position: center;
+    linear-gradient(to top, rgba(13, 32, 53, .94), rgba(13, 32, 53, .72) 54%, transparent 79%),
+    url('images/project-banner-compact.webp');
+  background-size: 52% 100%, cover;
+  background-repeat: no-repeat;
+  background-position: left bottom, center top;
 }
-.hero-copy {
-  max-width: 690px;
-}
-.hero .eyebrow {
-  color: #f2d49b;
-}
-.hero h1 {
-  color: #fff;
-  text-shadow: 0 2px 16px rgba(0, 0, 0, .35);
-}
-.hero .intro {
-  color: #f1f4f7;
-  max-width: 610px;
-}
-.hero .button {
-  background: #f0d39a;
-  border-color: #f0d39a;
-  color: #102c50;
-}
-.hero .button:hover {
-  background: #ffe6b8;
-}
-@media (max-width: 700px) {
+.hero-copy { max-width: 470px; }
+.hero .eyebrow { color: #f2d49b; margin-bottom: 8px; font-size: 10px; }
+.hero h1 { color: #fff; font-size: 36px; margin-bottom: 12px; text-shadow: 0 2px 12px #0d2035; }
+.hero .intro { color: #f1f4f7; font-size: 14px; margin-bottom: 16px; }
+.hero .button { background: #f0d39a; border-color: #f0d39a; color: #102c50; padding: 10px 16px; }
+.hero .button:hover { background: #ffe6b8; }
+@media (max-width: 1000px) {
   .hero {
-    aspect-ratio: auto;
     min-height: 0;
     display: block;
     margin-top: 16px;
@@ -557,16 +538,10 @@ footer {
     content: '';
     display: block;
     width: 100%;
-    aspect-ratio: 3 / 2;
-    background: url('images/project-banner-no-contacts.webp') center / contain no-repeat;
+    aspect-ratio: 3 / 1;
+    background: url('images/project-banner-compact.webp') center / contain no-repeat;
   }
-  .hero-copy {
-    padding: 24px 20px 28px;
-  }
-  .hero h1 {
-    font-size: clamp(28px, 6vw, 40px);
-  }
-  .hero .intro {
-    font-size: 15px;
-  }
+  .hero-copy { max-width: none; padding: 18px 20px 22px; }
+  .hero h1 { font-size: clamp(26px, 4vw, 34px); }
+  .hero .intro { max-width: 680px; }
 }
