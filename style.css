@@ -599,8 +599,10 @@ header::before {
   transform: translate(-50%, -50%);
   width: clamp(180px, 32vw, 420px);
   height: 50%;
-  background: url('images/header-ornament.svg') center / auto 100% repeat-x;
-  opacity: .3;
+  background: url('images/header-ornament-reference.png') center / auto 100% repeat-x;
+  filter: grayscale(1) invert(1) brightness(3) contrast(2);
+  mix-blend-mode: screen;
+  opacity: .4;
   -webkit-mask-image: linear-gradient(to right, transparent, #000 25%, #000 75%, transparent);
   mask-image: linear-gradient(to right, transparent, #000 25%, #000 75%, transparent);
   pointer-events: none;
