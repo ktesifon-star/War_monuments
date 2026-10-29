@@ -545,3 +545,28 @@ footer {
   .hero h1 { font-size: clamp(26px, 4vw, 34px); }
   .hero .intro { max-width: 680px; }
 }
+
+/* Touch targets and readable forms on narrow screens. */
+@media (max-width: 800px) {
+  input, select { font-size: 16px; }
+  nav a { display: inline-flex; align-items: center; min-height: 44px; }
+  .map-toolbar button { min-height: 44px; }
+  .leaflet-control-zoom a { width: 44px; height: 44px; line-height: 44px; }
+  .leaflet-container a.leaflet-popup-close-button { width: 44px; height: 44px; line-height: 44px; }
+  .leaflet-popup-content {
+    max-height: 240px;
+    max-height: min(240px, 45svh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .monument-popup { overflow-wrap: anywhere; }
+  .monument-popup h3 { padding-right: 20px; }
+  .monument-popup a { padding-block: 10px; min-height: 44px; }
+}
+@media (max-width: 600px) {
+  nav { flex-wrap: wrap; justify-content: center; gap: 4px 22px; }
+  .header-inner { gap: 2px; padding-block: 10px; }
+  .hero .button { max-width: 100%; text-align: center; }
+  .footer-inner { flex-wrap: wrap; }
+  .footer-inner a { display: inline-flex; align-items: center; min-height: 44px; }
+}
