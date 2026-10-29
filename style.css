@@ -501,3 +501,72 @@ footer {
 @media (max-width: 600px) {
   #results { max-height: 220px; }
 }
+
+/* Project poster, cleaned of contact details; foreground copy stays readable. */
+.hero {
+  max-width: none;
+  min-height: 640px;
+  aspect-ratio: 3 / 2;
+  margin: 24px 0 32px;
+  padding: clamp(24px, 4vw, 48px);
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 10px;
+  background-color: #0d2035;
+  background-image:
+    linear-gradient(to top, #0d2035 0%, rgba(13, 32, 53, .97) 24%, rgba(13, 32, 53, .65) 43%, transparent 66%),
+    url('images/project-banner-no-contacts.webp');
+  background-size: cover;
+  background-position: center;
+}
+.hero-copy {
+  max-width: 690px;
+}
+.hero .eyebrow {
+  color: #f2d49b;
+}
+.hero h1 {
+  color: #fff;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, .35);
+}
+.hero .intro {
+  color: #f1f4f7;
+  max-width: 610px;
+}
+.hero .button {
+  background: #f0d39a;
+  border-color: #f0d39a;
+  color: #102c50;
+}
+.hero .button:hover {
+  background: #ffe6b8;
+}
+@media (max-width: 700px) {
+  .hero {
+    aspect-ratio: auto;
+    min-height: 0;
+    display: block;
+    margin-top: 16px;
+    padding: 0;
+    background-image: none;
+  }
+  .hero::before {
+    content: '';
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    background: url('images/project-banner-no-contacts.webp') center / contain no-repeat;
+  }
+  .hero-copy {
+    padding: 24px 20px 28px;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 6vw, 40px);
+  }
+  .hero .intro {
+    font-size: 15px;
+  }
+}
