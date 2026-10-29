@@ -291,14 +291,24 @@ input,select {
 .about-section {
   display:grid;
   grid-template-columns:1fr 1.7fr;
-  gap:64px;
-  padding:64px 0
+  gap:32px;
+  padding:28px 0
 }
-.about-section p:first-child {
-  margin-top:0
+.about-section p, .participate p {
+  margin:0 0 10px;
+  line-height:1.5
+}
+.about-section p:last-child, .participate p:last-child {
+  margin-bottom:0
+}
+.about-section h2, .participate h2 {
+  margin-bottom:12px
+}
+.about-section .eyebrow, .participate .eyebrow {
+  margin-bottom:8px
 }
 .curator {
-  padding-top:20px;
+  padding-top:12px;
   border-top:1px solid var(--line);
   font-size:14px;
   color:var(--muted)
@@ -306,17 +316,19 @@ input,select {
 .participate {
   display:grid;
   grid-template-columns:1.5fr 1fr;
-  gap:40px;
+  gap:24px;
   background:white;
-  padding:36px;
+  padding:22px;
   border:1px solid var(--line);
   border-top:3px solid var(--gold);
   border-radius:8px;
-  margin-bottom:56px
+  margin-bottom:24px
 }
 .participate ul {
+  margin:8px 0 10px;
   padding-left:20px;
-  font-size:14px
+  font-size:14px;
+  line-height:1.5
 }
 .contact {
   display:flex;
@@ -328,12 +340,16 @@ input,select {
 .phone {
   font-size:21px;
   text-decoration:none;
-  margin-top:18px;
+  margin-top:10px;
   color:var(--blue)
 }
 .contact p {
+  margin-top:8px;
   font-family:Georgia,serif;
   color:var(--muted)
+}
+.footer-inner {
+  padding-block:10px
 }
 footer {
   background:var(--blue);
@@ -365,8 +381,8 @@ footer {
     gap:28px
   }
   .participate {
-    padding:24px;
-    gap:20px
+    padding:20px;
+    gap:16px
   }
   .map-toolbar {
     flex-wrap:wrap
@@ -435,14 +451,14 @@ footer {
   }
   .about-section,.participate {
     grid-template-columns:1fr;
-    gap:16px
+    gap:12px
   }
   .about-section {
-    padding:36px 0
+    padding:20px 0
   }
   .participate {
-    padding:20px;
-    margin-bottom:32px
+    padding:16px;
+    margin-bottom:16px
   }
   .contact {
     align-items:flex-start;
@@ -452,8 +468,9 @@ footer {
     margin-bottom:0
   }
   .footer-inner {
-    align-items:flex-start;
-    gap:16px
+    align-items:center;
+    gap:8px;
+    padding-block:6px
   }
   .footer-inner span {
     max-width:230px
