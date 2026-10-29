@@ -517,7 +517,7 @@ footer {
   border-radius: 10px;
   background-color: #0d2035;
   background-image:
-    linear-gradient(to top, #0d2035 0%, rgba(13, 32, 53, .97) 24%, rgba(13, 32, 53, .65) 43%, transparent 66%),
+    linear-gradient(to top, #0d2035 0%, rgba(13, 32, 53, .98) 46%, rgba(13, 32, 53, .30) 60%, transparent 70%),
     url('images/project-banner-no-contacts.webp');
   background-size: cover;
   background-position: center;
