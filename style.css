@@ -42,6 +42,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible {
   margin:auto
 }
 header {
+  position:relative;
+  isolation:isolate;
   background:var(--blue);
   color:#fff;
   border-bottom:3px solid var(--gold)
@@ -586,4 +588,21 @@ footer {
   .hero .button { max-width: 100%; text-align: center; }
   .footer-inner { flex-wrap: wrap; }
   .footer-inner a { display: inline-flex; align-items: center; min-height: 44px; }
+}
+
+/* Decorative Kazakh ornament, centered and half the header's height. */
+header::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(180px, 32vw, 420px);
+  height: 50%;
+  background: url('images/header-ornament.svg') center / auto 100% repeat-x;
+  opacity: .3;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 25%, #000 75%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 25%, #000 75%, transparent);
+  pointer-events: none;
+  z-index: -1;
 }
