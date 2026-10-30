@@ -731,3 +731,19 @@ header::before, footer::before {
 }
 #map.show-settlement-labels .settlement-label { display: block; }
 .leaflet-tooltip.settlement-label::before { display: none; }
+
+/* Reserve a separate ornament row on phones and tablets, above the text. */
+@media (max-width: 800px) {
+  header, footer { padding-top: 8px; }
+  header::before, footer::before {
+    position: relative;
+    display: block;
+    left: auto;
+    top: auto;
+    transform: none;
+    width: min(240px, calc(100% - 48px));
+    height: 16px;
+    margin: 0 auto;
+    opacity: .32;
+  }
+}
