@@ -7,7 +7,7 @@ function fixture({records, leaflet = true, fail = false}) {
   const stats = {images:0, markers:0, views:[], requests:0};
   const elements = new Map();
   class Element {
-    constructor(tag) { this.tagName=tag;this.children=[];this.events={};this.dataset={};this.value=''; }
+    constructor(tag) { this.tagName=tag;this.children=[];this.events={};this.dataset={};this.value='';this.classList={toggle:(name,on)=>{this[name]=on;}}; }
     append(...children) { this.children.push(...children); }
     replaceChildren(...children) { this.children=children; }
     addEventListener(name, callback) { this.events[name]=callback; }
@@ -16,7 +16,7 @@ function fixture({records, leaflet = true, fail = false}) {
     replaceWith() {}
   }
   const map = {
-    setMinZoom(){}, getBoundsZoom(){return 4;}, fitBounds(){}, closePopup(){}, on(){}, panInsideBounds(){},
+    zoom:4, events:{}, getZoom(){return this.zoom;}, setMinZoom(){}, getBoundsZoom(){return 4;}, fitBounds(){this.zoom=4;this.events.zoomend?.();}, closePopup(){}, on(name,fn){this.events[name]=fn;}, panInsideBounds(){},
     setView(coords,zoom){stats.views.push({coords,zoom});},
   };
   const markerObjects=[];
@@ -27,7 +27,7 @@ function fixture({records, leaflet = true, fail = false}) {
     divIcon(options){stats.icon=options;return options;},
     marker(){
       stats.markers++;
-      const marker={events:{},on(name,fn){this.events[name]=fn;},openPopup(){throw Error('Leaflet popup must not be used');}};
+      const marker={events:{},bindTooltip(content,options){this.tooltip={content,options};return this;},on(name,fn){this.events[name]=fn;},openPopup(){throw Error('Leaflet popup must not be used');}};
       markerObjects.push(marker);
       return marker;
     },
@@ -38,7 +38,7 @@ function fixture({records, leaflet = true, fail = false}) {
   globalThis.location={hash:''};
   globalThis.history={replaceState(a,b,hash){location.hash=hash;}};
   globalThis.fetch=async()=>{stats.requests++;if(fail && stats.requests===1)throw Error('offline');return {ok:true,json:async()=>records};};
-  return {stats,elements,markerObjects};
+  return {stats,elements,markerObjects,map};
 }
 const record=i=>({id:`m-${i}`,name:`Мемориал ${i}`,region:'Алматы',location:'Алматы',coords:[43.259,76.957],description:'Описание',photo:'images/photo.jpg',photoAuthor:'Автор',photoSource:'Архив',photoPermission:'Разрешено'});
 async function start(options) {
@@ -98,4 +98,15 @@ test('invalid coordinates are skipped and valid records after them still appear'
   assert.equal(stats.markers,2);
   assert.equal(elements.get('#result-count').textContent,'Найдено: 2 · Всего в коллекции: 2');
   assert.equal(elements.get('#data-status').hidden,false);
+});
+
+test('settlement labels follow zoom threshold and omit address details',async()=>{
+  const {map,elements,markerObjects}=await start({records:[{...record(1),location:'с. Ставрополка, центр села'}]});
+  assert.equal(markerObjects[0].tooltip.content.textContent,'с. Ставрополка');
+  assert.equal(markerObjects[0].tooltip.options.permanent,true);
+  assert.equal(elements.get('#map')['show-settlement-labels'],false);
+  map.zoom=10;map.events.zoomend();
+  assert.equal(elements.get('#map')['show-settlement-labels'],true);
+  map.zoom=9;map.events.zoomend();
+  assert.equal(elements.get('#map')['show-settlement-labels'],false);
 });

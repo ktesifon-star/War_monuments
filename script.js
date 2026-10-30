@@ -124,8 +124,16 @@ function setupMap() {
     className: 'star-icon-container', iconSize: [24, 24], iconAnchor: [12, 12], popupAnchor: [0, -9],
     html: '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#b32d35" stroke="#fff" stroke-width="1.5"/></svg>',
   });
+  const updateSettlementLabels = () => {
+    document.querySelector('#map').classList.toggle('show-settlement-labels', map.getZoom() >= 10);
+  };
+  map.on('zoomend', updateSettlementLabels);
   markerIndex = createMarkerIndex(layer, item => {
     const marker = L.marker(item.coords, {icon, title: item.name, alt: item.name});
+    marker.bindTooltip(node('span', item.location.split(',')[0].trim()), {
+      permanent: true, direction: 'right', offset: [10, 0],
+      className: 'settlement-label', interactive: false,
+    });
     marker.on('click', () => {
       history.replaceState(null, '', `#${item.id}`);
       showDetails(item);
@@ -133,6 +141,7 @@ function setupMap() {
     return marker;
   });
   overview();
+  updateSettlementLabels();
   if (typeof ResizeObserver !== 'undefined') {
     new ResizeObserver(() => map.invalidateSize({pan: false, debounceMoveend: true}))
       .observe(document.querySelector('#map-stage'));
