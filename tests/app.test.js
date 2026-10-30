@@ -110,3 +110,18 @@ test('settlement labels follow zoom threshold and omit address details',async()=
   map.zoom=9;map.events.zoomend();
   assert.equal(elements.get('#map')['show-settlement-labels'],false);
 });
+
+test('analytics tracks card opens and WhatsApp without blocking navigation',async()=>{
+  const {elements,markerObjects}=await start({records:[record(1)]});
+  const events=[];
+  window.gtag=(...args)=>events.push(args);
+  markerObjects[0].events.click();
+  assert.equal(events.length,1);
+  assert.equal(events[0][1],'view_monument');
+  assert.equal(events[0][2].monument_id,'m-1');
+  elements.get('a[href="https://wa.me/77053211545"]').events.click();
+  assert.equal(events[1][1],'contact_whatsapp');
+  delete window.gtag;
+  assert.doesNotThrow(()=>markerObjects[0].events.click());
+  assert.doesNotThrow(()=>elements.get('a[href="https://wa.me/77053211545"]').events.click());
+});

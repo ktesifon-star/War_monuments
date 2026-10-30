@@ -72,11 +72,20 @@ function hideDetails(restoreFocus = false) {
   if (restoreFocus) detailTrigger?.focus?.({preventScroll: true});
 }
 
+function trackMonument(item) {
+  window.gtag?.('event', 'view_monument', {
+    monument_id: item.id,
+    monument_name: item.name,
+    settlement: item.location.split(',')[0].trim(),
+  });
+}
+
 function showDetails(item) {
   detailTrigger = document.activeElement;
   detailBody.replaceChildren(content(item));
   detailPanel.hidden = false;
   closeDetail.focus?.({preventScroll: true});
+  trackMonument(item);
 }
 
 function initialZoom() {
@@ -168,6 +177,7 @@ function appendPage() {
       const details = node('details');
       details.append(node('summary', 'Открыть описание'));
       details.addEventListener('toggle', () => {
+        if (details.open) trackMonument(item);
         if (details.open && !details.dataset.loaded) {
           details.append(content(item));
           details.dataset.loaded = 'true';
@@ -257,5 +267,8 @@ more.addEventListener('click', appendPage);
 retry.addEventListener('click', loadCatalog);
 reset.addEventListener('click', () => { overview(); history.replaceState(null, '', '#atlas'); });
 window.addEventListener('hashchange', openHash);
+document.querySelector('a[href="https://wa.me/77053211545"]')?.addEventListener('click', () => {
+  window.gtag?.('event', 'contact_whatsapp', {contact_method: 'WhatsApp'});
+});
 setupMap();
 loadCatalog();
