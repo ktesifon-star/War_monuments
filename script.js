@@ -144,6 +144,8 @@ function setupMap() {
 }
 
 function appendPage() {
+  // The catalog is only a fallback when the map cannot load.
+  if (map) { more.hidden = true; return; }
   const next = filtered.slice(displayed, displayed + config.pageSize);
   next.forEach(item => {
     const article = node('article', '', 'result-card');
@@ -181,6 +183,7 @@ function render() {
   if (monuments.some(item => item.id === selectedId) && !filtered.some(item => item.id === selectedId)) {
     history.replaceState(null, '', '#atlas');
   }
+  results.hidden = Boolean(map);
   results.replaceChildren();
   results.scrollTop = 0;
   displayed = 0;
@@ -232,6 +235,14 @@ detailPanel.addEventListener('keydown', event => {
 });
 const delayedRender = debounce(render, config.searchDelay);
 search.addEventListener('input', delayedRender);
+search.addEventListener('keydown', event => {
+  if (event.key === 'Enter' && map) {
+    event.preventDefault();
+    delayedRender.cancel();
+    render();
+    if (filtered.length) showMonument(filtered[0]);
+  }
+});
 region.addEventListener('change', () => { delayedRender.cancel(); render(); });
 more.addEventListener('click', appendPage);
 retry.addEventListener('click', loadCatalog);

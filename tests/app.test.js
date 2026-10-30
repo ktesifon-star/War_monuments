@@ -52,9 +52,9 @@ test('app loads 65 markers once, pages cards, lazily opens photo and preserves r
   const {stats,elements,markerObjects}=await start({records:Array.from({length:65},(_,i)=>record(i))});
   assert.equal(stats.markers,65);
   assert.equal(stats.images,0);
-  assert.equal(elements.get('#results').children.length,30);
-  elements.get('#show-more').events.click();
-  assert.equal(elements.get('#results').children.length,60);
+  assert.equal(elements.get('#results').hidden,true);
+  assert.equal(elements.get('#results').children.length,0);
+  assert.equal(elements.get('#show-more').hidden,true);
   markerObjects[0].events.click();
   assert.equal(elements.get('#monument-panel').hidden,false);
   assert.equal(elements.get('#monument-detail').children.length,1);
@@ -64,9 +64,12 @@ test('app loads 65 markers once, pages cards, lazily opens photo and preserves r
   elements.get('#search').value='Мемориал 64';
   elements.get('#search').events.input();
   await wait(220);
-  assert.equal(elements.get('#results').children.length,1);
+  assert.equal(elements.get('#results').hidden,true);
   assert.equal(stats.markers,65);
   assert.equal(stats.images,1);
+  elements.get('#search').events.keydown({key:'Enter',preventDefault(){}});
+  assert.equal(stats.views.at(-1).zoom,14);
+  assert.equal(elements.get('#monument-panel').hidden,false);
   elements.get('#reset-view').events.click();
   assert.equal(elements.get('#search').value,'Мемориал 64');
   assert.equal(stats.options.scrollWheelZoom,true);
@@ -87,12 +90,12 @@ test('JSON fetch failure exposes retry and recovers without a page reload',async
   assert.equal(elements.get('#retry-data').hidden,false);
   await elements.get('#retry-data').events.click();
   assert.equal(stats.requests,2);
-  assert.equal(elements.get('#results').children.length,1);
+  assert.equal(elements.get('#results').hidden,true);
   assert.equal(elements.get('#data-status').hidden,true);
 });
 test('invalid coordinates are skipped and valid records after them still appear',async()=>{
   const {stats,elements}=await start({records:[record(1),{...record(2),coords:null},record(3)]});
   assert.equal(stats.markers,2);
-  assert.equal(elements.get('#results').children.length,2);
+  assert.equal(elements.get('#result-count').textContent,'Найдено: 2 · Всего в коллекции: 2');
   assert.equal(elements.get('#data-status').hidden,false);
 });

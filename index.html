@@ -30,18 +30,18 @@
   <section id="atlas" class="atlas" aria-labelledby="map-title">
     <div class="section-heading"><div><p class="eyebrow">Общий архив</p><h2 id="map-title">Карта памяти</h2></div><span class="collection-note">Коллекция пополняется</span></div>
     <div class="atlas-layout">
-      <aside class="catalog" aria-label="Каталог памятников">
-        <label for="search">Найти памятник</label>
-        <input id="search" type="search" placeholder="Название или населённый пункт" autocomplete="off">
-        <label for="region">Регион</label>
-        <select id="region"><option value="">Все регионы</option></select>
+      <div class="catalog search-strip" role="search" aria-label="Поиск памятников">
+        <div class="search-field"><label for="search">Найти памятник</label>
+        <input id="search" type="search" placeholder="Название или населённый пункт" autocomplete="off"></div>
+        <div class="region-field"><label for="region">Регион</label>
+        <select id="region"><option value="">Все регионы</option></select></div>
         <p id="result-count" class="muted" role="status"></p>
         <p id="data-status" class="data-status" role="status" hidden></p>
         <button id="retry-data" type="button" hidden>Повторить загрузку</button>
         <div id="results"></div>
         <button id="show-more" type="button" hidden>Показать ещё</button>
         <noscript>Для карты и поиска включите JavaScript. <a href="data/monuments.json">Открыть данные каталога</a>.</noscript>
-      </aside>
+      </div>
       <div class="map-column">
         <div class="map-toolbar"><span><span class="legend-star" aria-hidden="true">★</span> Памятник / мемориал</span><button id="reset-view" type="button">Начальный масштаб</button></div>
         <div id="map-stage" class="map-stage">
@@ -52,7 +52,7 @@
           </section>
         </div>
         <p id="map-status" class="map-status" role="status" hidden></p>
-        <p class="map-hint">Нажмите на звезду или выберите памятник в каталоге. Масштаб — двумя пальцами, колёсиком мыши или кнопками + и −. Чтобы прокрутить страницу на телефоне, проведите пальцем за пределами карты.</p>
+        <p class="map-hint">Найдите памятник по названию или селу и нажмите на звезду. Enter в поиске открывает первый найденный памятник. Масштаб — двумя пальцами, колёсиком мыши или кнопками + и −. Чтобы прокрутить страницу на телефоне, проведите пальцем за пределами карты.</p>
       </div>
     </div>
   </section>

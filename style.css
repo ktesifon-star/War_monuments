@@ -535,11 +535,10 @@ footer {
   border-radius: 10px;
   background-color: #0d2035;
   background-image:
-    linear-gradient(to top, rgba(13, 32, 53, .94), rgba(13, 32, 53, .72) 54%, transparent 79%),
     url('images/project-banner-compact.webp');
-  background-size: 52% 100%, cover;
+  background-size: cover;
   background-repeat: no-repeat;
-  background-position: left bottom, center top;
+  background-position: center top;
 }
 .hero-copy { max-width: 470px; }
 .hero .eyebrow { color: #f2d49b; margin-bottom: 8px; font-size: 10px; }
@@ -663,4 +662,52 @@ header::before, footer::before {
 }
 @media (max-width: 600px) {
   .map-stage > #map { min-height: 370px; }
+}
+
+/* Full-width map with search in one horizontal strip. */
+#main.container { width: 100%; }
+#main > .hero, #main > .about-section, #main > .participate,
+.atlas > .section-heading { width: min(1200px, calc(100% - 64px)); margin-inline: auto; }
+.atlas-layout { display: block; border-inline: 0; border-radius: 0; }
+.search-strip {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(180px, 280px) auto;
+  align-items: end; gap: 12px 24px;
+  border-right: 0; border-bottom: 1px solid var(--line);
+  padding: 14px max(24px, calc((100% - 1200px) / 2));
+}
+.search-strip input, .search-strip select { margin-bottom: 0; font-size: 16px; }
+.search-strip #result-count { margin: 0; align-self: center; }
+.search-strip #results, .search-strip #data-status, .search-strip noscript { grid-column: 1 / -1; }
+.map-toolbar { padding-inline: 24px; }
+.map-stage > #map { min-height: clamp(560px, 72vh, 820px); }
+.monument-panel { width: calc(100% - 96px); max-width: 1240px; padding: 24px; }
+.monument-panel .monument-popup { grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 12px 28px; font-size: 16px; }
+.monument-panel h3 { font-size: 28px; }
+.monument-panel .monument-popup img { height: clamp(300px, 45vh, 520px); }
+.monument-panel .photo-credit { font-size: 12px; }
+/* The title shade fades both upwards and into the image on its right. */
+.hero { position: relative; isolation: isolate; }
+.hero::after {
+  content: ''; position: absolute; inset: 0 auto 0 0; width: 72%;
+  background: linear-gradient(to top, rgba(13,32,53,.96), rgba(13,32,53,.78) 54%, transparent 79%);
+  -webkit-mask-image: linear-gradient(to right, #000 45%, transparent);
+  mask-image: linear-gradient(to right, #000 45%, transparent);
+  z-index: -1; pointer-events: none;
+}
+@media (max-width: 1000px) { .hero::after { display: none; } }
+@media (max-width: 800px) {
+  #main > .hero, #main > .about-section, #main > .participate,
+  .atlas > .section-heading { width: calc(100% - 32px); }
+  .search-strip { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 12px 16px; gap: 10px; }
+  .search-strip #result-count { grid-column: 1 / -1; }
+  .monument-panel { width: calc(100% - 32px); margin: 16px auto; padding: 18px; }
+  .monument-panel .monument-popup { display: flex; font-size: 15px; }
+  .monument-panel h3 { font-size: 23px; }
+  .monument-panel .monument-popup img { height: clamp(240px, 42vh, 400px); }
+  .map-stage > #map { min-height: 500px; }
+}
+@media (max-width: 420px) {
+  .search-strip { grid-template-columns: minmax(0, 1fr); }
+  .map-toolbar { padding-inline: 16px; }
 }
