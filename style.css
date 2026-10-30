@@ -664,11 +664,16 @@ header::before, footer::before {
   .map-stage > #map { min-height: 370px; }
 }
 
-/* Full-width map with search in one horizontal strip. */
+/* Wide map with side gutters for scrolling the page outside Leaflet. */
 #main.container { width: 100%; }
 #main > .hero, #main > .about-section, #main > .participate,
 .atlas > .section-heading { width: min(1200px, calc(100% - 64px)); margin-inline: auto; }
-.atlas-layout { display: block; border-inline: 0; border-radius: 0; }
+.atlas-layout {
+  display: block;
+  margin-inline: clamp(24px, 3vw, 48px);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
 .search-strip {
   display: grid;
   grid-template-columns: minmax(200px, 1fr) minmax(180px, 280px) auto;
