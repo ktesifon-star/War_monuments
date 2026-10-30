@@ -748,17 +748,21 @@ header::before, footer::before {
   }
 }
 
-/* Project contacts follow the collection instructions in a single column. */
+/* Compact coordinator block between the banner and map. */
 #main > .coordinators {
   width: min(1200px, calc(100% - 64px));
-  margin: 0 auto 24px;
-  padding-top: 20px;
-  border-top: 1px solid var(--line);
+  margin: 0 auto 18px;
+  font-size: 15px;
 }
-.coordinators h2 { font-size: 26px; margin-bottom: 16px; }
-.coordinator + .coordinator { margin-top: 14px; }
-.coordinator p { margin: 0; line-height: 1.5; overflow-wrap: anywhere; }
-.coordinator .muted { margin-top: 4px; font-size: 14px; }
+.coordinators h2 {
+  font-family: Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.coordinator + .coordinator { margin-top: 10px; }
+.coordinator p { margin: 0; line-height: 1.4; overflow-wrap: anywhere; }
+.coordinator .muted { margin-top: 2px; font-size: 14px; }
 @media (max-width: 800px) {
-  #main > .coordinators { width: calc(100% - 32px); margin-bottom: 20px; }
+  #main > .coordinators { width: calc(100% - 32px); margin-bottom: 16px; }
 }
