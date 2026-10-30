@@ -755,6 +755,7 @@ header::before, footer::before {
   font-size: 15px;
 }
 .coordinators h2 {
+  text-align: center;
   font-family: Arial, sans-serif;
   font-size: 18px;
   font-weight: 600;
