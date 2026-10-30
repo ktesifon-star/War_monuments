@@ -767,3 +767,5 @@ header::before, footer::before {
 @media (max-width: 800px) {
   #main > .coordinators { width: calc(100% - 32px); margin-bottom: 16px; }
 }
+
+.brand-star { vertical-align: -3px; margin-right: 10px; }
