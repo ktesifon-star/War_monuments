@@ -769,3 +769,12 @@ header::before, footer::before {
 }
 
 .brand-star { vertical-align: -3px; margin-right: 10px; }
+
+.header-brand-links { display: flex; align-items: center; gap: 4px; }
+.facebook-link {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
