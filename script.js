@@ -10,6 +10,7 @@ const count = document.querySelector('#result-count');
 const reset = document.querySelector('#reset-view');
 const more = document.querySelector('#show-more');
 const retry = document.querySelector('#retry-data');
+const detailOverlay = document.querySelector('#monument-overlay');
 const detailPanel = document.querySelector('#monument-panel');
 const detailBody = document.querySelector('#monument-detail');
 const closeDetail = document.querySelector('#close-monument');
@@ -45,30 +46,71 @@ function photoPlaceholder() {
   return node('div', 'Фотография пока не добавлена', 'photo-placeholder');
 }
 
-// Called only on popup open (or explicit catalog expansion if Leaflet failed).
-function content(item) {
-  const box = node('div', '', 'monument-popup');
-  box.append(node('h3', item.name), node('p', item.location));
+// The same complete archive card works in the full-page dialog and map-free fallback.
+function metaEntry(label, value) {
+  const row = node('div', '', 'monument-meta-row');
+  row.append(node('dt', label), node('dd', value));
+  return row;
+}
+
+function content(item, isDialog = false) {
+  const box = node('article', '', 'monument-popup');
+  const heading = node('div', '', 'monument-heading');
+  const title = node('h3', item.name);
+  if (isDialog) title.id = 'monument-title';
+  heading.append(title, node('p', item.location, 'monument-place'), node('p', item.region, 'monument-region'));
+
+  const media = node('figure', '', 'monument-media');
   if (item.photo) {
     const img = node('img');
-    img.alt = item.name;
+    img.alt = `Фотография памятника: ${item.name}`;
     img.decoding = 'async';
+    img.addEventListener('load', () => {
+      if (!isDialog || !detailBody.contains(img)) return;
+      const ratio = img.naturalWidth / img.naturalHeight;
+      detailPanel.dataset.orientation = ratio < 0.9 ? 'portrait' : ratio > 1.1 ? 'landscape' : 'square';
+    });
     img.addEventListener('error', () => {
       img.replaceWith(node('div', 'Не удалось загрузить фотографию', 'photo-placeholder'));
+      if (isDialog && !detailOverlay.hidden) detailPanel.dataset.orientation = 'none';
     }, {once: true});
     img.src = item.photo;
-    box.append(img);
-    box.append(node('p', `Фото: ${item.photoAuthor}. Источник: ${item.photoSource}. ${item.photoPermission}`, 'muted photo-credit'));
-  } else box.append(photoPlaceholder());
-  box.append(node('p', item.description, 'monument-description'));
-  (item.sources ?? []).forEach((url, index) => box.append(externalLink(`Источник ${index + 1} ↗`, url)));
+    media.append(img);
+  } else {
+    media.append(photoPlaceholder());
+  }
+
+  const info = node('div', '', 'monument-info');
+  info.append(node('h4', 'История памятника'), node('p', item.description, 'monument-description'));
+  const metadata = node('dl', '', 'monument-meta');
+  if (item.photo) {
+    metadata.append(
+      metaEntry('Автор фотографии', item.photoAuthor),
+      metaEntry('Источник фотографии', item.photoSource),
+      metaEntry('Разрешение на публикацию', item.photoPermission),
+    );
+  }
   const [lat, lon] = item.coords;
-  box.append(externalLink('Открыть точку в OpenStreetMap ↗', `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=17/${lat}/${lon}`));
+  metadata.append(
+    metaEntry('Координаты', `${lat.toFixed(6)}, ${lon.toFixed(6)}`),
+    metaEntry('Код записи', item.id),
+  );
+  info.append(metadata);
+  const links = node('div', '', 'monument-links');
+  (item.sources ?? []).forEach((url, index) => links.append(externalLink(`Исторический источник ${index + 1} ↗`, url)));
+  links.append(externalLink('Место на OpenStreetMap ↗', `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=17/${lat}/${lon}`));
+  info.append(links);
+  box.append(heading, media, info);
   return box;
 }
 
 function hideDetails(restoreFocus = false) {
-  detailPanel.hidden = true;
+  if (detailOverlay.hidden) return;
+  detailOverlay.hidden = true;
+  document.body.classList.remove('dialog-open');
+  for (const element of [document.querySelector('header'), document.querySelector('main'), document.querySelector('footer')]) {
+    if (element) element.inert = false;
+  }
   if (restoreFocus) detailTrigger?.focus?.({preventScroll: true});
 }
 
@@ -82,9 +124,14 @@ function trackMonument(item) {
 
 function showDetails(item) {
   detailTrigger = document.activeElement;
-  detailBody.replaceChildren(content(item));
-  detailPanel.hidden = false;
-  closeDetail.focus?.({preventScroll: true});
+  detailPanel.dataset.orientation = 'none';
+  detailBody.replaceChildren(content(item, true));
+  detailOverlay.hidden = false;
+  document.body.classList.add('dialog-open');
+  for (const element of [document.querySelector('header'), document.querySelector('main'), document.querySelector('footer')]) {
+    if (element) element.inert = true;
+  }
+  closeDetail.focus({preventScroll: true});
   trackMonument(item);
 }
 
@@ -102,10 +149,8 @@ function overview() {
 
 function showMonument(item, updateHash = true) {
   if (updateHash) history.replaceState(null, '', `#${item.id}`);
-  if (!map) return;
-  map.setView(item.coords, config.detailZoom, {animate: false});
+  if (map) map.setView(item.coords, config.detailZoom, {animate: false});
   showDetails(item);
-  document.querySelector('#map').scrollIntoView({block: 'center', behavior: 'instant'});
 }
 
 function setupMap() {
@@ -249,8 +294,28 @@ async function loadCatalog() {
 }
 
 closeDetail.addEventListener('click', () => hideDetails(true));
-detailPanel.addEventListener('keydown', event => {
-  if (event.key === 'Escape') { event.preventDefault(); hideDetails(true); }
+detailOverlay.addEventListener('click', event => {
+  if (event.target === detailOverlay) hideDetails(true);
+});
+document.addEventListener('keydown', event => {
+  if (detailOverlay.hidden) return;
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    hideDetails(true);
+  }
+  if (event.key === 'Tab') {
+    const focusable = [...detailPanel.querySelectorAll('a[href], button:not([disabled])')];
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
 });
 const delayedRender = debounce(render, config.searchDelay);
 search.addEventListener('input', delayedRender);
