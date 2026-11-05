@@ -7,10 +7,12 @@ function fixture({records, leaflet = true, fail = false}) {
   const stats = {images:0, markers:0, views:[], requests:0};
   const elements = new Map();
   class Element {
-    constructor(tag) { this.tagName=tag;this.children=[];this.events={};this.dataset={};this.value='';this.classList={toggle:(name,on)=>{this[name]=on;}}; }
+    constructor(tag) { this.tagName=tag;this.children=[];this.events={};this.dataset={};this.value='';this.classList={toggle:(name,on)=>{this[name]=on;},add:name=>{this[name]=true;},remove:name=>{this[name]=false;}}; }
     append(...children) { this.children.push(...children); }
     replaceChildren(...children) { this.children=children; }
     addEventListener(name, callback) { this.events[name]=callback; }
+    focus() { document.activeElement=this; }
+    contains(element) { return this.children.includes(element) || this.children.some(child=>child.contains?.(element)); }
     scrollIntoView() {}
     set src(value) { stats.images++;this.url=value; }
     replaceWith() {}
@@ -32,7 +34,7 @@ function fixture({records, leaflet = true, fail = false}) {
       return marker;
     },
   };
-  globalThis.document={querySelector(selector){if(!elements.has(selector))elements.set(selector,new Element('div'));return elements.get(selector);},createElement:tag=>new Element(tag)};
+  globalThis.document={body:new Element('body'),events:{},addEventListener(name,fn){this.events[name]=fn;},querySelector(selector){if(!elements.has(selector))elements.set(selector,new Element('div'));return elements.get(selector);},createElement:tag=>new Element(tag)};
   globalThis.Option=class extends Element {constructor(text,value){super('option');this.textContent=text;this.value=value;}};
   globalThis.window={L:leaflet?L:undefined,addEventListener(){}};
   globalThis.location={hash:''};
@@ -56,10 +58,10 @@ test('app loads 65 markers once, pages cards, lazily opens photo and preserves r
   assert.equal(elements.get('#results').children.length,0);
   assert.equal(elements.get('#show-more').hidden,true);
   markerObjects[0].events.click();
-  assert.equal(elements.get('#monument-panel').hidden,false);
+  assert.equal(elements.get('#monument-overlay').hidden,false);
   assert.equal(elements.get('#monument-detail').children.length,1);
   elements.get('#close-monument').events.click();
-  assert.equal(elements.get('#monument-panel').hidden,true);
+  assert.equal(elements.get('#monument-overlay').hidden,true);
   assert.equal(stats.images,1);
   elements.get('#search').value='Мемориал 64';
   elements.get('#search').events.input();
@@ -69,7 +71,7 @@ test('app loads 65 markers once, pages cards, lazily opens photo and preserves r
   assert.equal(stats.images,1);
   elements.get('#search').events.keydown({key:'Enter',preventDefault(){}});
   assert.equal(stats.views.at(-1).zoom,14);
-  assert.equal(elements.get('#monument-panel').hidden,false);
+  assert.equal(elements.get('#monument-overlay').hidden,false);
   elements.get('#reset-view').events.click();
   assert.equal(elements.get('#search').value,'Мемориал 64');
   assert.equal(stats.options.scrollWheelZoom,true);
@@ -124,4 +126,30 @@ test('analytics tracks card opens and WhatsApp without blocking navigation',asyn
   delete window.gtag;
   assert.doesNotThrow(()=>markerObjects[0].events.click());
   assert.doesNotThrow(()=>elements.get('a[href="https://wa.me/77053211545"]').events.click());
+});
+
+
+test('full-page dialog includes all archive metadata and adapts to original image orientation',async()=>{
+  const {elements,markerObjects}=await start({records:[record(1)]});
+  markerObjects[0].events.click();
+  const dialog=elements.get('#monument-panel');
+  const article=elements.get('#monument-detail').children[0];
+  assert.equal(article.children[0].children[0].id,'monument-title');
+  assert.equal(article.children[0].children[2].textContent,'Алматы');
+  const image=article.children[1].children[0];
+  image.naturalWidth=600; image.naturalHeight=1000;
+  image.events.load();
+  assert.equal(dialog.dataset.orientation,'portrait');
+  image.naturalWidth=1600; image.naturalHeight=900;
+  image.events.load();
+  assert.equal(dialog.dataset.orientation,'landscape');
+  const metadata=article.children[2].children[2];
+  assert(metadata.children.some(entry=>entry.children[0].textContent==='Автор фотографии'));
+  assert(metadata.children.some(entry=>entry.children[0].textContent==='Разрешение на публикацию'));
+  assert(metadata.children.some(entry=>entry.children[0].textContent==='Координаты'));
+  assert(metadata.children.some(entry=>entry.children[0].textContent==='Код записи'));
+  assert.equal(document.body['dialog-open'],true);
+  document.events.keydown({key:'Escape',preventDefault(){}});
+  assert.equal(elements.get('#monument-overlay').hidden,true);
+  assert.equal(document.body['dialog-open'],false);
 });
