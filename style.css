@@ -610,59 +610,9 @@ header::before, footer::before {
   z-index: -1;
 }
 
-/* A stable card shares the map's grid cell; its full content determines
-   the minimum map height. No popup auto-pan or nested scroll container. */
-.map-stage { display: grid; min-width: 0; }
-.map-stage > #map { grid-area: 1 / 1; height: 100%; min-height: 490px; }
-.monument-panel {
-  grid-area: 1 / 1;
-  position: relative;
-  z-index: 1;
-  align-self: center;
-  width: calc(100% - 48px);
-  max-width: 760px;
-  margin: 24px auto;
-  padding: 22px;
-  background: #fff;
-  border: 1px solid #ccd3db;
-  border-radius: 8px;
-  box-shadow: 0 8px 28px #102c5033;
-}
-#close-monument {
-  position: absolute; top: 4px; right: 4px;
-  width: 44px; height: 44px; border: 0;
-  background: transparent; color: var(--blue);
-  font-size: 28px; line-height: 1;
-}
-.monument-panel .monument-popup {
-  display: grid;
-  grid-template-columns: minmax(0, .9fr) minmax(0, 1.2fr);
-  gap: 10px 20px;
-  width: 100%; max-width: none;
-  font-size: 14px; line-height: 1.45;
-  overflow-wrap: anywhere;
-}
-.monument-panel h3 { grid-column: 1 / -1; margin: 0; padding-right: 32px; font-size: 23px; }
-.monument-panel .monument-popup > p:first-of-type { grid-column: 1 / -1; }
-.monument-panel .monument-popup p { margin: 0; }
-.monument-panel .monument-popup img {
-  grid-column: 1; grid-row: 3;
-  width: 100%; height: 190px; object-fit: contain;
-  background: var(--paper); border-radius: 4px;
-}
-.monument-panel .photo-placeholder { grid-column: 1; grid-row: 3; }
-.monument-panel .photo-credit { grid-column: 1; font-size: 11px; line-height: 1.4; }
-.monument-panel .monument-description { grid-column: 2; grid-row: 3 / 5; }
-.monument-panel .monument-popup a { grid-column: 1 / -1; min-height: 44px; padding: 10px 0; }
-@media (max-width: 800px) {
-  .monument-panel { width: calc(100% - 24px); margin: 12px auto; padding: 16px; }
-  .monument-panel .monument-popup { display: flex; flex-direction: column; gap: 8px; }
-  .monument-panel h3 { font-size: 21px; }
-  .monument-panel .monument-popup img { height: 140px; }
-}
-@media (max-width: 600px) {
-  .map-stage > #map { min-height: 370px; }
-}
+/* The map is a standalone surface; detail dialogs live at body level. */
+.map-stage { min-width: 0; }
+.map-stage > #map { min-height: 490px; }
 
 /* Wide map with side gutters for scrolling the page outside Leaflet. */
 #main.container { width: 100%; }
@@ -686,11 +636,6 @@ header::before, footer::before {
 .search-strip #results, .search-strip #data-status, .search-strip noscript { grid-column: 1 / -1; }
 .map-toolbar { padding-inline: 24px; }
 .map-stage > #map { min-height: clamp(560px, 72vh, 820px); }
-.monument-panel { width: calc(100% - 96px); max-width: 1240px; padding: 24px; }
-.monument-panel .monument-popup { grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 12px 28px; font-size: 16px; }
-.monument-panel h3 { font-size: 28px; }
-.monument-panel .monument-popup img { height: clamp(300px, 45vh, 520px); }
-.monument-panel .photo-credit { font-size: 12px; }
 /* The title shade fades both upwards and into the image on its right. */
 .hero { position: relative; isolation: isolate; }
 .hero::after {
@@ -706,10 +651,6 @@ header::before, footer::before {
   .atlas > .section-heading { width: calc(100% - 32px); }
   .search-strip { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 12px 16px; gap: 10px; }
   .search-strip #result-count { grid-column: 1 / -1; }
-  .monument-panel { width: calc(100% - 32px); margin: 16px auto; padding: 18px; }
-  .monument-panel .monument-popup { display: flex; font-size: 15px; }
-  .monument-panel h3 { font-size: 23px; }
-  .monument-panel .monument-popup img { height: clamp(240px, 42vh, 400px); }
   .map-stage > #map { min-height: 500px; }
 }
 @media (max-width: 420px) {
@@ -777,4 +718,194 @@ header::before, footer::before {
   width: 44px;
   height: 44px;
   border-radius: 50%;
+}
+
+
+/* Archive card: viewport-level, photo-first, orientation-aware dialog. */
+body.dialog-open { overflow: hidden; }
+.monument-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: clamp(10px, 2.5vw, 36px);
+  background: rgba(8, 20, 32, .78);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  overscroll-behavior: contain;
+}
+.monument-overlay .monument-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  grid-area: auto;
+  align-self: auto;
+  width: min(1180px, 100%);
+  max-width: 100%;
+  max-height: calc(100vh - 20px);
+  max-height: calc(100svh - 20px);
+  margin: 0;
+  padding: clamp(16px, 2.5vw, 30px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: #fff;
+  border: 1px solid #d5d9dd;
+  border-radius: 12px;
+  box-shadow: 0 22px 80px rgba(0, 0, 0, .38);
+}
+.monument-overlay #close-monument {
+  position: sticky;
+  top: 0;
+  right: auto;
+  align-self: flex-end;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  margin: 0 0 -44px auto;
+  background: #fff;
+  border: 1px solid #d0d5dc;
+  border-radius: 50%;
+  color: #102c50;
+  cursor: pointer;
+}
+.monument-overlay #close-monument:hover,
+.monument-overlay #close-monument:focus-visible {
+  background: #eef2f6;
+  outline-offset: 2px;
+}
+.monument-overlay .monument-popup {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr);
+  gap: 18px 28px;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.monument-overlay .monument-heading { grid-column: 1 / -1; padding-right: 52px; }
+.monument-overlay .monument-heading h3 {
+  margin: 0 0 3px;
+  padding: 0;
+  font-size: clamp(22px, 2.5vw, 32px);
+  line-height: 1.2;
+}
+.monument-overlay .monument-heading p { margin: 2px 0; }
+.monument-overlay .monument-place { font-weight: 700; }
+.monument-overlay .monument-region { color: var(--muted); font-size: 13px; }
+.monument-overlay .monument-media {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-self: start;
+  width: 100%;
+  min-width: 0;
+  min-height: 170px;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #f2f2ef;
+}
+.monument-overlay .monument-media img {
+  display: block;
+  grid-column: auto;
+  grid-row: auto;
+  width: 100%;
+  height: auto;
+  max-height: min(64svh, 690px);
+  object-fit: contain;
+  object-position: center;
+  background: transparent;
+  border-radius: 0;
+}
+.monument-overlay .monument-media .photo-placeholder { width: 100%; }
+.monument-overlay .monument-info {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+}
+.monument-overlay .monument-info h4 { margin: 0 0 8px; font-size: 17px; }
+.monument-overlay .monument-description { margin: 0 0 20px; white-space: pre-line; }
+.monument-overlay .monument-meta {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.monument-overlay .monument-meta-row { min-width: 0; }
+.monument-overlay .monument-meta dt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.monument-overlay .monument-meta dd { margin: 0; font-size: 13px; }
+.monument-overlay .monument-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin-top: 14px;
+}
+.monument-overlay .monument-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 5px 0;
+  color: var(--blue);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* Tall originals get more vertical image space and a narrower card. */
+.monument-overlay .monument-panel[data-orientation="portrait"] { width: min(960px, 100%); }
+.monument-overlay .monument-panel[data-orientation="portrait"] .monument-popup {
+  grid-template-columns: minmax(0, .9fr) minmax(280px, 1fr);
+}
+.monument-overlay .monument-panel[data-orientation="portrait"] .monument-media img {
+  max-height: min(76svh, 760px);
+}
+.monument-overlay .monument-panel[data-orientation="landscape"] { width: min(1240px, 100%); }
+.result-card details .monument-popup { width: min(100%, 760px); max-width: 100%; }
+.result-card details .monument-heading h3 { margin: 14px 0 4px; }
+.result-card details .monument-media { margin: 12px 0; }
+.result-card details .monument-media img { max-width: 100%; max-height: 330px; object-fit: contain; }
+.result-card details .monument-meta { margin-top: 16px; }
+.result-card details .monument-meta dt { font-size: 12px; color: var(--muted); }
+.result-card details .monument-meta dd { margin: 0 0 9px; }
+@media (max-width: 800px) {
+  .monument-overlay { padding: 8px; }
+  .monument-overlay .monument-panel {
+    width: 100%;
+    max-height: calc(100svh - 16px);
+    padding: 14px;
+    border-radius: 10px;
+  }
+  .monument-overlay .monument-popup,
+  .monument-overlay .monument-panel[data-orientation="portrait"] .monument-popup {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    font-size: 14px;
+  }
+  .monument-overlay .monument-heading { grid-column: 1; }
+  .monument-overlay .monument-heading h3 { font-size: 22px; }
+  .monument-overlay .monument-media { grid-column: 1; grid-row: 2; }
+  .monument-overlay .monument-info { grid-column: 1; grid-row: 3; }
+  .monument-overlay .monument-media img,
+  .monument-overlay .monument-panel[data-orientation="portrait"] .monument-media img {
+    height: auto;
+    max-height: 43svh;
+  }
+  .monument-overlay .monument-panel[data-orientation="portrait"] .monument-media img { max-height: 52svh; }
+  .monument-overlay .monument-info h4 { margin-top: 6px; }
+}
+@media (max-height: 560px) and (min-width: 801px) {
+  .monument-overlay .monument-media img,
+  .monument-overlay .monument-panel[data-orientation="portrait"] .monument-media img {
+    max-height: 50svh;
+  }
 }
