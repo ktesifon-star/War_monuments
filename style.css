@@ -937,7 +937,7 @@ html[lang="kk"] .hero-banner-title {
   html[lang="kk"] .hero-banner-title { min-height: calc((100vw - 32px) / 9); }
 }
 
-/* Keep navigation between the ornament and the language controls. */
+/* Keep navigation compact; center the ornament on the whole header. */
 .header-inner nav {
   font-size: 13px;
   gap: 16px;
@@ -947,17 +947,19 @@ html[lang="kk"] .hero-banner-title {
   header::before { display: none; }
   .header-inner {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    position: relative;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     gap: 16px;
   }
   .header-brand-links { grid-column: 1; grid-row: 1; }
-  .header-inner nav { grid-column: 3; grid-row: 1; }
-  .header-inner .language-switch { grid-column: 4; grid-row: 1; }
+  .header-inner nav { grid-column: 2; grid-row: 1; }
+  .header-inner .language-switch { grid-column: 3; grid-row: 1; }
   .header-inner::before {
     content: '';
-    grid-column: 2; grid-row: 1;
-    justify-self: center;
-    width: 100%; max-width: 300px; height: 32px;
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(300px, calc(100% - 720px)); height: 32px;
     background: url('images/header-ornament-reference.png') center / auto 100% repeat-x;
     filter: grayscale(1) invert(1) brightness(3) contrast(2);
     mix-blend-mode: screen;
@@ -965,5 +967,17 @@ html[lang="kk"] .hero-banner-title {
     -webkit-mask-image: linear-gradient(to right, transparent, #000 25%, #000 75%, transparent);
     mask-image: linear-gradient(to right, transparent, #000 25%, #000 75%, transparent);
     pointer-events: none;
+  }
+}
+
+/* Give the centered decoration its own row when horizontal space is limited. */
+@media (min-width: 801px) and (max-width: 1000px) {
+  .header-inner { padding-top: 44px; }
+  .header-inner::before {
+    top: 8px;
+    transform: translateX(-50%);
+    width: 240px;
+    height: 16px;
+    opacity: .32;
   }
 }
