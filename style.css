@@ -526,9 +526,9 @@ footer {
 /* Compact memorial banner; keep its title clear of the foreground copy. */
 .hero {
   max-width: none;
-  min-height: 420px;
-  margin: 20px 0 28px;
-  padding: 110px 28px 24px;
+  min-height: 330px;
+  margin: 16px 0 14px;
+  padding: 64px 28px 20px;
   display: flex;
   align-items: flex-end;
   overflow: hidden;
@@ -542,8 +542,8 @@ footer {
 }
 .hero-copy { max-width: 470px; }
 .hero .eyebrow { color: #f2d49b; margin-bottom: 8px; font-size: 10px; }
-.hero h1 { color: #fff; font-size: 36px; margin-bottom: 12px; text-shadow: 0 2px 12px #0d2035; }
-.hero .intro { color: #f1f4f7; font-size: 14px; margin-bottom: 16px; }
+.hero h1 { color: #fff; font-size: 32px; margin-bottom: 10px; text-shadow: 0 2px 12px #0d2035; }
+.hero .intro { color: #f1f4f7; font-size: 13px; margin-bottom: 12px; }
 .hero .button { background: #f0d39a; border-color: #f0d39a; color: #102c50; padding: 10px 16px; }
 .hero .button:hover { background: #ffe6b8; }
 @media (max-width: 1000px) {
@@ -558,11 +558,11 @@ footer {
     content: '';
     display: block;
     width: 100%;
-    aspect-ratio: 3 / 1;
+    aspect-ratio: 4 / 1;
     background: url('images/project-banner-compact.webp') center / contain no-repeat;
   }
-  .hero-copy { max-width: none; padding: 18px 20px 22px; }
-  .hero h1 { font-size: clamp(26px, 4vw, 34px); }
+  .hero-copy { max-width: none; padding: 14px 18px 18px; }
+  .hero h1 { font-size: clamp(24px, 4vw, 30px); }
   .hero .intro { max-width: 680px; }
 }
 
@@ -616,7 +616,7 @@ header::before, footer::before {
 
 /* Wide map with side gutters for scrolling the page outside Leaflet. */
 #main.container { width: 100%; }
-#main > .hero, #main > .about-section, #main > .participate,
+#main > .hero, #main > .about-section,
 .atlas > .section-heading { width: min(1200px, calc(100% - 64px)); margin-inline: auto; }
 .atlas-layout {
   display: block;
@@ -647,7 +647,7 @@ header::before, footer::before {
 }
 @media (max-width: 1000px) { .hero::after { display: none; } }
 @media (max-width: 800px) {
-  #main > .hero, #main > .about-section, #main > .participate,
+  #main > .hero, #main > .about-section,
   .atlas > .section-heading { width: calc(100% - 32px); }
   .search-strip { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 12px 16px; gap: 10px; }
   .search-strip #result-count { grid-column: 1 / -1; }
@@ -907,5 +907,32 @@ body.dialog-open { overflow: hidden; }
   .monument-overlay .monument-media img,
   .monument-overlay .monument-panel[data-orientation="portrait"] .monument-media img {
     max-height: 50svh;
+  }
+}
+
+/* Wide invitation panel above the memorial map, with a working contact number. */
+#main > .participate {
+  width: calc(100% - 2 * clamp(24px, 3vw, 48px));
+  margin: 0 auto 22px;
+  padding: 20px clamp(20px, 4vw, 40px);
+  grid-template-columns: minmax(0, 1.5fr) minmax(240px, 1fr);
+  align-items: center;
+}
+#main > .participate .contact .phone {
+  font-weight: 700;
+  white-space: nowrap;
+}
+@media (max-width: 800px) {
+  #main > .participate { width: calc(100% - 32px); }
+}
+@media (max-width: 600px) {
+  #main > .participate {
+    grid-template-columns: minmax(0, 1fr);
+    margin-bottom: 16px;
+    padding: 16px;
+  }
+  #main > .participate .contact {
+    align-items: flex-start;
+    text-align: left;
   }
 }
