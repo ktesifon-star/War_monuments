@@ -47,7 +47,7 @@ export function validateMonuments(input) {
       return;
     }
     ids.add(record.id);
-    valid.push({...record, searchText: normalize(`${record.name} ${record.location} ${record.region}`)});
+    valid.push({...record, searchText: normalize(`${record.name} ${record.location} ${record.region} ${record.searchAliases ?? ''}`)});
   });
   return {valid, errors};
 }

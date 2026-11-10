@@ -1,3 +1,5 @@
+import {translate, localizeRecords, initializeLanguage, language} from './i18n.js';
+initializeLanguage();
 import {config} from './config.js';
 import {validateMonuments, filterMonuments, debounce, createMarkerIndex} from './core.js';
 
@@ -24,13 +26,13 @@ const L = window.L;
 
 function node(tag, text = '', className = '') {
   const el = document.createElement(tag);
-  el.textContent = text;
+  el.textContent = translate(text);
   if (className) el.className = className;
   return el;
 }
 
 function message(el, text) {
-  el.textContent = text;
+  el.textContent = translate(text);
   el.hidden = !text;
 }
 
@@ -63,7 +65,7 @@ function content(item, isDialog = false) {
   const media = node('figure', '', 'monument-media');
   if (item.photo) {
     const img = node('img');
-    img.alt = `Фотография памятника: ${item.name}`;
+    img.alt = translate(`Фотография памятника: ${item.name}`);
     img.decoding = 'async';
     img.addEventListener('load', () => {
       if (!isDialog || !detailBody.contains(img)) return;
@@ -234,7 +236,7 @@ function appendPage() {
   });
   displayed += next.length;
   more.hidden = displayed >= filtered.length;
-  more.textContent = `Показать ещё (${Math.min(config.pageSize, filtered.length - displayed)})`;
+  more.textContent = translate(`Показать ещё (${Math.min(config.pageSize, filtered.length - displayed)})`);
 }
 
 function render() {
@@ -251,7 +253,7 @@ function render() {
   results.replaceChildren();
   results.scrollTop = 0;
   displayed = 0;
-  count.textContent = `Найдено: ${filtered.length} · Всего в коллекции: ${monuments.length}`;
+  count.textContent = translate(`Найдено: ${filtered.length} · Всего в коллекции: ${monuments.length}`);
   if (!filtered.length) results.append(node('p', monuments.length ? 'Ничего не найдено. Измените запрос или выберите другой регион.' : 'В каталоге пока нет доступных записей.', 'muted'));
   appendPage();
 }
@@ -269,23 +271,23 @@ function openHash() {
 async function loadCatalog() {
   retry.hidden = true;
   search.disabled = region.disabled = true;
-  count.textContent = 'Загрузка каталога…';
+  count.textContent = translate('Загрузка каталога…');
   try {
     const response = await fetch(config.dataUrl, {signal: AbortSignal.timeout(15000)});
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const {valid, errors} = validateMonuments(await response.json());
+    const {valid, errors} = validateMonuments(localizeRecords(await response.json()));
     monuments = valid;
     message(dataStatus, errors.length ? `Не удалось показать некоторые записи (${errors.length}). Остальной каталог доступен.` : '');
     if (errors.length) console.warn('Ошибки каталога:', errors);
     if (errors.length && !valid.length) retry.hidden = false;
-    region.replaceChildren(new Option('Все регионы', ''));
-    [...new Set(valid.map(item => item.region))].sort((a, b) => a.localeCompare(b, 'ru'))
+    region.replaceChildren(new Option(translate('Все регионы'), ''));
+    [...new Set(valid.map(item => item.region))].sort((a, b) => a.localeCompare(b, language))
       .forEach(value => region.append(new Option(value, value)));
     render();
     openHash();
   } catch (error) {
     console.error('Не удалось загрузить каталог:', error);
-    count.textContent = 'Каталог недоступен';
+    count.textContent = translate('Каталог недоступен');
     message(dataStatus, 'Не удалось загрузить список памятников. Проверьте соединение и повторите попытку.');
     retry.hidden = false;
   } finally {

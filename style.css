@@ -909,3 +909,30 @@ body.dialog-open { overflow: hidden; }
     max-height: 50svh;
   }
 }
+
+/* Compact language control with touch-sized links. */
+.header-inner { flex-wrap: wrap; }
+.language-switch { display: flex; gap: 4px; align-items: center; }
+.language-switch a {
+  display: grid; place-items: center; min-width: 44px; min-height: 44px;
+  padding: 4px 8px; border: 1px solid transparent; border-radius: 5px;
+  font-size: 14px; text-decoration: none;
+}
+.language-switch a[aria-current="true"] { border-color: #d7b474; background: #ffffff14; }
+.hero-banner-title { display: none; }
+html[lang="kk"] .hero-banner-title {
+  display: grid; align-content: center; position: absolute; z-index: 1;
+  inset: 0 0 auto; height: 130px; padding: 12px 20px;
+  background: #102c50; color: #f2d49b; text-align: center;
+  font: bold clamp(18px, 2.4vw, 30px)/1.25 Georgia, serif;
+}
+@media (max-width: 1000px) {
+  html[lang="kk"] .hero-banner-title {
+    height: auto; min-height: calc((100vw - 64px) / 9);
+    padding: 6px 10px; font-size: clamp(12px, 2.4vw, 24px);
+  }
+}
+@media (max-width: 800px) {
+  .header-inner { gap: 8px; justify-content: center; }
+  html[lang="kk"] .hero-banner-title { min-height: calc((100vw - 32px) / 9); }
+}

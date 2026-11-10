@@ -22,9 +22,10 @@ await hashed('data/monuments.json');
 // Keep a stable data URL for the no-JavaScript link.
 await cp(resolve(root, 'data/monuments.json'), resolve(out, 'data/monuments.json'));
 await hashed('core.js');
+await hashed('i18n.js');
 await hashed('config.js', text => text.replace('./data/monuments.json', `./${names['data/monuments.json']}`).replace('./core.js', `./${names['core.js']}`));
 await hashed('style.css');
-await hashed('script.js', text => text.replace('./core.js', `./${names['core.js']}`).replace('./config.js', `./${names['config.js']}`));
+await hashed('script.js', text => text.replace('./i18n.js', `./${names['i18n.js']}`).replace('./core.js', `./${names['core.js']}`).replace('./config.js', `./${names['config.js']}`));
 let html = await readFile(resolve(root, 'index.html'), 'utf8');
 html = html.replace(/style\.css\?v=[^" ]+/g, names['style.css']).replace(/script\.js\?v=[^" ]+/g, names['script.js']);
 await writeFile(resolve(out, 'index.html'), html);
