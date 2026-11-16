@@ -129,13 +129,13 @@ test('analytics tracks card opens and WhatsApp without blocking navigation',asyn
 });
 
 
-test('full-page dialog includes all archive metadata and adapts to original image orientation',async()=>{
+test('full-page dialog shows only requested fields and adapts to original image orientation',async()=>{
   const {elements,markerObjects}=await start({records:[record(1)]});
   markerObjects[0].events.click();
   const dialog=elements.get('#monument-panel');
   const article=elements.get('#monument-detail').children[0];
   assert.equal(article.children[0].children[0].id,'monument-title');
-  assert.equal(article.children[0].children[2].textContent,'Алматы');
+  assert.equal(article.children[0].children.length,1);
   const image=article.children[1].children[0];
   image.naturalWidth=600; image.naturalHeight=1000;
   image.events.load();
@@ -144,10 +144,9 @@ test('full-page dialog includes all archive metadata and adapts to original imag
   image.events.load();
   assert.equal(dialog.dataset.orientation,'landscape');
   const metadata=article.children[2].children[2];
-  assert(metadata.children.some(entry=>entry.children[0].textContent==='Автор фотографии'));
-  assert(metadata.children.some(entry=>entry.children[0].textContent==='Разрешение на публикацию'));
-  assert(metadata.children.some(entry=>entry.children[0].textContent==='Координаты'));
-  assert(metadata.children.some(entry=>entry.children[0].textContent==='Код записи'));
+  assert.equal(article.children[2].children[0].textContent,'История');
+  assert.deepEqual(metadata.children.map(entry=>entry.children[0].textContent),['Источник','Адрес','Координаты']);
+  assert.equal(article.children[2].children.length,3);
   assert.equal(document.body['dialog-open'],true);
   document.events.keydown({key:'Escape',preventDefault(){}});
   assert.equal(elements.get('#monument-overlay').hidden,true);

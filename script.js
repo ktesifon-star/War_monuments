@@ -60,7 +60,7 @@ function content(item, isDialog = false) {
   const heading = node('div', '', 'monument-heading');
   const title = node('h3', item.name);
   if (isDialog) title.id = 'monument-title';
-  heading.append(title, node('p', item.location, 'monument-place'), node('p', item.region, 'monument-region'));
+  heading.append(title);
 
   const media = node('figure', '', 'monument-media');
   if (item.photo) {
@@ -83,25 +83,25 @@ function content(item, isDialog = false) {
   }
 
   const info = node('div', '', 'monument-info');
-  info.append(node('h4', 'История памятника'), node('p', item.description, 'monument-description'));
+  info.append(node('h4', 'История'), node('p', item.description, 'monument-description'));
   const metadata = node('dl', '', 'monument-meta');
-  if (item.photo) {
-    metadata.append(
-      metaEntry('Автор фотографии', item.photoAuthor),
-      metaEntry('Источник фотографии', item.photoSource),
-      metaEntry('Разрешение на публикацию', item.photoPermission),
-    );
-  }
+  const sourceRow = node('div', '', 'monument-meta-row');
+  const sourceValue = node('dd', item.source || item.photoSource || 'Не указан');
+  (item.sources ?? []).forEach((url, index) => {
+    const link = externalLink(`Источник ${index + 1} ↗`, url);
+    sourceValue.append(node('br'), link);
+  });
+  sourceRow.append(node('dt', 'Источник'), sourceValue);
   const [lat, lon] = item.coords;
-  metadata.append(
-    metaEntry('Координаты', `${lat.toFixed(6)}, ${lon.toFixed(6)}`),
-    metaEntry('Код записи', item.id),
-  );
+  const coordinates = node('div', '', 'monument-meta-row');
+  const coordinateValue = node('dd');
+  coordinateValue.append(externalLink(
+    `${lat.toFixed(6)}, ${lon.toFixed(6)}`,
+    `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=17/${lat}/${lon}`,
+  ));
+  coordinates.append(node('dt', 'Координаты'), coordinateValue);
+  metadata.append(sourceRow, metaEntry('Адрес', item.address || `${item.region}, ${item.location}`), coordinates);
   info.append(metadata);
-  const links = node('div', '', 'monument-links');
-  (item.sources ?? []).forEach((url, index) => links.append(externalLink(`Исторический источник ${index + 1} ↗`, url)));
-  links.append(externalLink('Место на OpenStreetMap ↗', `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=17/${lat}/${lon}`));
-  info.append(links);
   box.append(heading, media, info);
   return box;
 }
