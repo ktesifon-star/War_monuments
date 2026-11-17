@@ -983,16 +983,16 @@ html[lang="kk"] .hero-banner-title {
 }
 
 
-/* Short, centered footer ornament occupies its own row, clear of copyright. */
-footer { padding-top: 6px; }
+/* Short footer ornament stays centered on the same line as the text. */
+footer { padding-top: 0; }
 footer::before {
-  position: relative;
+  position: absolute;
   display: block;
-  left: auto;
-  top: auto;
-  transform: none;
-  width: min(160px, calc(100% - 48px));
-  height: 12px;
-  margin: 0 auto 2px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 16px;
+  margin: 0;
   opacity: .32;
 }
