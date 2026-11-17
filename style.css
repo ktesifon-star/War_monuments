@@ -981,3 +981,18 @@ html[lang="kk"] .hero-banner-title {
     opacity: .32;
   }
 }
+
+
+/* Short, centered footer ornament occupies its own row, clear of copyright. */
+footer { padding-top: 6px; }
+footer::before {
+  position: relative;
+  display: block;
+  left: auto;
+  top: auto;
+  transform: none;
+  width: min(160px, calc(100% - 48px));
+  height: 12px;
+  margin: 0 auto 2px;
+  opacity: .32;
+}
