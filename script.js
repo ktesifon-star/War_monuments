@@ -84,6 +84,37 @@ function content(item, isDialog = false) {
 
   const info = node('div', '', 'monument-info');
   info.append(node('h4', 'История'), node('p', item.description, 'monument-description'));
+  if (item.facebookPost) {
+    let postUrl;
+    try {
+      const parsed = new URL(item.facebookPost);
+      if (parsed.protocol === 'https:' && parsed.hostname === 'www.facebook.com') postUrl = parsed.href;
+    } catch {}
+    if (postUrl) {
+      const publication = node('details', '', 'facebook-publication');
+      publication.append(node('summary', 'Читать публикацию Facebook'));
+      const frame = node('iframe');
+      frame.title = translate('Публикация о памятнике в Facebook');
+      frame.height = '250';
+      frame.loading = 'lazy';
+      frame.allowFullscreen = true;
+      frame.allow = 'encrypted-media; picture-in-picture; web-share';
+      publication.append(frame, externalLink('Открыть публикацию в Facebook ↗', postUrl));
+      let loaded = false;
+      publication.addEventListener('toggle', () => {
+        if (!publication.open || loaded) return;
+        const width = Math.min(500, Math.max(220, Math.floor(publication.clientWidth)));
+        const embedUrl = new URL('https://www.facebook.com/plugins/post.php');
+        embedUrl.searchParams.set('href', postUrl);
+        embedUrl.searchParams.set('show_text', 'true');
+        embedUrl.searchParams.set('width', String(width));
+        frame.width = String(width);
+        frame.src = embedUrl.href;
+        loaded = true;
+      });
+      info.append(publication);
+    }
+  }
   const metadata = node('dl', '', 'monument-meta');
   const sourceRow = node('div', '', 'monument-meta-row');
   const sourceValue = node('dd', item.source || item.photoSource || 'Не указан');

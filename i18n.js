@@ -1,5 +1,8 @@
 // Shared Russian/Kazakh interface and catalog localization.
 const translations = {
+  "Читать публикацию Facebook": "Facebook жарияланымын оқу",
+  "Публикация о памятнике в Facebook": "Facebook желісіндегі ескерткіш туралы жарияланым",
+  "Открыть публикацию в Facebook ↗": "Жарияланымды Facebook желісінде ашу ↗",
   "История": "Тарихы",
   "Источник": "Дереккөз",
   "Адрес": "Мекенжайы",
