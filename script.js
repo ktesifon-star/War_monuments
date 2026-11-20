@@ -95,7 +95,7 @@ function content(item, isDialog = false) {
       publication.append(node('summary', 'Читать публикацию Facebook'));
       const frame = node('iframe');
       frame.title = translate('Публикация о памятнике в Facebook');
-      frame.height = '250';
+      frame.height = String(Number.isInteger(item.facebookPostHeight) && item.facebookPostHeight >= 250 && item.facebookPostHeight <= 2000 ? item.facebookPostHeight : 250);
       frame.loading = 'lazy';
       frame.allowFullscreen = true;
       frame.allow = 'encrypted-media; picture-in-picture; web-share';
